@@ -1,5 +1,4 @@
 build
-.catkin_workspace
 devel
 src/CMakeLists.txt
 src/lab2/document/main.aux
