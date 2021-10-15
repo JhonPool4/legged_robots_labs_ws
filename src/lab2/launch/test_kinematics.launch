@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!-- info: display ur5 robot on rviz-->
+<launch>
+    <!-- Load urdf model-->
+    <param  name="robot_description" textfile="$(find ur5_description)/urdf/v2_ur5.urdf" />
+    <!-- Publish robot state-->
+    <node   name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen" />
+    
+	<!-- Call a service that show a gui to modify joint angles-->
+	<node name="test_kinematics" pkg="lab1" type="test_kinematics" output="screen" />
+    
+    <!-- Rviz config file-->            
+    <arg name="rviz_config_file" default="$(find lab1)/config/test_kinematics.rviz"/>
+    <!-- Open Rviz with config--> 
+    <node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d$(arg rviz_config_file)"/>
+</launch>

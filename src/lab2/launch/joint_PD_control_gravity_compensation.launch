@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!-- info: display ur5 robot on rviz, the robot follow a sine trajectory-->
+<launch>
+    <!-- display ur5 robot on rviz-->
+    <include file="$(find lab1)/launch/display_ur5_rviz.launch">
+        <arg name="rviz_config_file" value="$(find lab1)/config/lab1_exp_1.1_view_ur5.rviz"/>       
+    </include>
+    <!-- Create a node to publish joint trajectory -->
+    <node name="node_joint_PD_control" pkg="lab1" type="joint_PD_control" output="screen" /> 
+</launch>

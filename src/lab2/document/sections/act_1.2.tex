@@ -1,0 +1,119 @@
+% act_1.2
+\subsection{Step reference generation}
+The objective of this activity is display the UR5 robot on rviz and move the second and fifth joints of the UR5 robot with a constant reference position. The simulation starts with the initial joint configuration $\begin{bmatrix} \pi & -\frac{\pi}{8} & -\frac{\pi}{6} & 0.0 & 0.0 & 0.0 \end{bmatrix}$ rad and then move the second and fifth joints of the UR5 robot. The two joints will maintain the initial configuration during the first $2$ seconds and follow a step reference during the last $3$ seconds. The function to generate the step reference is described in Algorithm \ref{lst:step_reference_generator} and the rosnode file to move the second and fifth joints of UR5 robot is described in Algorithm \ref{lst:rosnode_step_reference_generator}. Finally, Figure \ref{fig:act_1.2_joint_position}-\ref{fig:act_1.2_joint_acceleration} show the joint position, velocity and acceleration of each joint of the UR5 robot.\vspace{5px}
+
+\begin{lstlisting}[language=Python,caption=Function to generate step reference., label={lst:step_reference_generator}]
+def step_reference_generator(q0, a):
+    """
+    Info: generate a constant reference.
+
+    Inputs:
+    ------
+        - q0: initial joint position
+        - a: constant reference
+    Outputs:
+        - q: angular position
+        - dq: angular velocity
+        - ddq: angular acceleration
+    """
+    q = q0 + a  # [rad]
+    dq = 0      # [rad/s]
+    ddq = 0     # [rad/s^2]
+    return q, dq, ddq
+\end{lstlisting}
+
+
+
+\begin{lstlisting}[language=Python, caption={Move the second and fifth joint of UR5 robot with the required movement of activity 1.2.}, label={lst:rosnode_step_reference_generator}]
+# =========================
+#   Configuration of node
+# =========================
+# create a node: 
+rospy.init_node("node_step_reference_generation")
+
+# public in topic /joint_states	to send joint data	
+pub = rospy.Publisher('joint_states', JointState, queue_size=1000)
+
+# loop rate (in Hz)
+rate 	= rospy.Rate(1000)		# [Hz]
+dt 		= 1e-3					# [ms]
+
+# object(message) type JointState
+jstate = JointState()
+
+# ===========================
+#   UR5 robot configuration
+# ===========================
+# joints name of UR5 robot
+jnames = ['shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint','wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint']
+# number of degress of freedom
+ndof = 6
+
+# ==========================================
+#   Set initial joint configuration of UR5
+# ==========================================
+# initial configuration: position, velocity and acceleration 
+q0   = np.array([np.pi, -np.pi/8,  -np.pi/6, 0.0, 0.0, 0.0])
+dq0  = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+ddq0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+
+# desired trajectory: position, velocity and acceleration
+q_des   = np.array([np.pi, -np.pi/8,  -np.pi/6, 0.0, 0.0, 0.0])
+dq_des  = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+ddq_des = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+
+#===============
+#   Simulation
+#===============
+t = 0.0             # [sec] 
+sim_duration = 5.0  # [sec]
+step_start = 2.0    # [sec]
+
+while not rospy.is_shutdown():
+    # generate step reference after 2 seconds
+    if t>=step_start:
+        # second link
+        q_des[1], dq_des[1], ddq_des[1] = step_reference_generator(q0[1],-0.4)
+        # fifth link
+        q_des[4], dq_des[4], ddq_des[4] = step_reference_generator(q0[4], 0.5)
+
+    # publish message
+    jstate.header.stamp = rospy.Time.now()
+    jstate.name 		= jnames    # Joints position name
+    jstate.position 	= q_des     # joint position
+    jstate.velocity 	= dq_des    # joint velocity
+    pub.publish(jstate)
+
+    # update time
+    t = t + dt
+    
+    # stop simulation    
+    if t>=sim_duration:
+        print("stopping rviz ...")
+        break
+
+    rate.sleep()
+
+\end{lstlisting}
+
+
+\begin{figure}
+    \centering
+    \includegraphics{images/act_1.2/joint_position.eps}
+    \caption{Angular position of each joint of UR5 robot with Algorithm \ref{lst:rosnode_sine_reference_generator}.}
+    \label{fig:act_1.2_joint_position}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics{images/act_1.2/joint_velocity.eps}
+    \caption{Angular velocity of each joint of UR5 robot with Algorithm \ref{lst:rosnode_sine_reference_generator}.}
+    \label{fig:act_1.2_joint_velocity}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics{images/act_1.2/joint_acceleration.eps}
+    \caption{Angular acceleration of each joint of UR5 robot with Algorithm \ref{lst:rosnode_sine_reference_generator}.}
+    \label{fig:act_1.2_joint_acceleration}
+\end{figure}

@@ -1,0 +1,181 @@
+#!/usr/bin/env python3
+# ===============================================================
+#	Curso   :   Legged robots
+# 	Alumno  :   Jhon Charaja
+#   Lab     :   2 (Joint space motion control)
+#   Activity:   1.7
+# 	Info	:	PD control + gravity compensation + feed forward term
+# ===============================================================
+
+# =============
+#   Libraries
+# ============= 
+import os
+import rospy
+import numpy as np
+import pandas as pd
+from copy import copy
+from sensor_msgs.msg import JointState
+from lab_functions import *
+
+# =============
+#   Save data
+# =============
+# directory to save data
+origin 	= '../data/'
+suffix 	= 'act_1.7_sin'
+pwd = os.path.dirname(os.path.realpath(__file__))
+folder = os.path.join(pwd, origin, suffix)
+
+# creates folder if it does not exist
+if not os.path.exists(folder):
+    os.makedirs(folder)
+
+column_names = [
+    't',
+
+    'C1', 'C2', 'C3', 'C4', 'C5', 'C6',
+
+	'q1', 'q2', 'q3', 'q4', 'q5', 'q6',
+	'dq1', 'dq2', 'dq3', 'dq4', 'dq5', 'dq6',
+	'ddq1', 'ddq2', 'ddq3', 'ddq4', 'ddq5', 'ddq6',
+
+    'q1_des', 'q2_des', 'q3_des', 'q4_des', 'q5_des', 'q6_des',
+    'dq1_des', 'dq2_des', 'dq3_des', 'dq4_des', 'dq5_des', 'dq6_des',
+    'ddq1_des', 'ddq2_des', 'ddq3_des', 'ddq4_des', 'ddq5_des', 'ddq6_des' 
+]
+
+df = pd.DataFrame(columns=column_names)
+file_name = 'data'
+path = os.path.join(folder, file_name)
+
+df.to_csv(path, index=False) 
+
+
+# =========================
+#   Configuration of node
+# =========================
+# create a node: 
+rospy.init_node("node_joint_PD_control_gravity_feedforward_term")
+
+# public in topic /joint_states	to send joint data	
+pub = rospy.Publisher('joint_states', JointState, queue_size=1000)
+
+# loop rate (in Hz)
+rate 	= rospy.Rate(1000)		# 100 [Hz]
+dt 		= 1e-3					# 10  [ms]
+
+# object(message) type JointState
+jstate = JointState()
+
+# ==========================================
+#   Set initial joint configuration of UR5
+# ==========================================
+# initial configuration: position, velocity and acceleration 
+q0 =   np.array([np.pi, -np.pi/8,  -np.pi/6, 0.0, 0.0, 0.0])
+dq0 =  np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+ddq0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+
+# desired trajectory: position, velocity and acceleration
+q_des =   np.array([np.pi, -np.pi/8,  -np.pi/6, 0.0, 0.0, 0.0]) 
+dq_des =  np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+ddq_des = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+
+# measured trajectory: position, velocity and acceleration
+q =   np.array([np.pi, -np.pi/8,  -np.pi/6, 0.0, 0.0, 0.0])
+dq =  np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+ddq = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+
+# ===========================
+#   UR5 robot configuration
+# ===========================
+# joints name of UR5 robot
+jnames = ['shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint','wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint']
+# path of labs_ur5.urdf
+urdf_path = os.path.join(pwd, "../../ur5_description/urdf/labs_ur5.urdf")
+# the class robot load labs_ur5.urdf
+ur5_robot = Robot(q0, dq0, dt, urdf_path)
+# number of degress of freedom
+ndof = ur5_robot.ndof
+
+# create inertia matrix 
+M = np.zeros([ndof,ndof])
+# create nonlinear effects vector
+b = np.zeros(ndof)
+# create gravity vector
+g = np.zeros(ndof)
+
+# ===============================
+#   PD controller configuration
+# ===============================
+# proportional gain
+kp = 300*np.ones(ndof)
+# derivative gain
+kd = 20*np.ones(ndof)
+# control vector
+tau = np.zeros(ndof)    
+
+#===============
+#   Simulation
+#===============
+t = 0.0             # [sec] 
+sim_duration = 5.0  # [sec]
+sine_duration = 4.0 # [sec]
+
+while not rospy.is_shutdown():
+    # generate sinusoidal joint reference
+    if t<=sine_duration:
+        # second link
+        q_des[1], dq_des[1], ddq_des[1] = sinusoidal_reference_generator(q0[1], 0.2, 1, t)
+        last_q_des_1 = q_des[1]
+        # fifth link
+        q_des[4], dq_des[4], ddq_des[4] = sinusoidal_reference_generator(q0[4], 0.4, 1.5, t)  
+        last_q_des_4 = q_des[4]  
+    else:   
+        # second link
+        q_des[1], dq_des[1], ddq_des[1] = step_reference_generator(0, last_q_des_1)
+        # fifth link
+        q_des[4], dq_des[4], ddq_des[4] = step_reference_generator(0 , last_q_des_4)
+    
+    # error: position and velocity
+    e 	=  q_des - q
+    de 	=  dq_des - dq    
+
+    # compute inertia matrix
+    M = ur5_robot.get_M()
+
+    # compute gravitational effects vector
+    g = ur5_robot.get_g()
+
+    C = ur5_robot.get_b() - g
+
+    # PD control method + gravity compensation + feedforward term
+    tau_ff = M.dot(ddq_des)
+    tau = np.multiply(kp, e) + np.multiply(kd, de) + tau_ff + g
+    
+    # send control signal
+    ur5_robot.send_control_command(tau)
+    # update states
+    q, dq, ddq = ur5_robot.read_joint_position_velocity_acceleration()
+
+    # publish message
+    jstate.header.stamp = rospy.Time.now()
+    jstate.name 		= jnames			# Joints position name
+    jstate.position 	= q
+    jstate.velocity 	= dq
+    pub.publish(jstate)
+
+    # update time
+    t = t + dt
+
+    # Append data
+    row = tl(np.array([t])) + tl(C) + tl(q) + tl(dq)+tl(ddq) + tl(q_des) + tl(dq_des) + tl(ddq_des)
+    # Fix for redimensionality
+    df_row = pd.DataFrame.from_dict(dict(zip(column_names, tl(np.expand_dims(np.array(row), axis = 1)))))
+    df.append(df_row, sort = False).to_csv(path, index=False, mode = 'a', header=False)     
+    
+    # stop simulation
+    if t>=sim_duration:
+        print("stopping rviz ...")
+        break
+    rate.sleep()

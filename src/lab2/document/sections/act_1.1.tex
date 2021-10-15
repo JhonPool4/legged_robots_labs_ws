@@ -1,0 +1,126 @@
+% activity 1.1
+\subsection{Sinusoidal reference generation}
+The objective of this activity is display the UR5 robot on rviz and move the second and fifth joints with a sinusoidal reference position.  The simulation starts with the initial joint configuration $\begin{bmatrix} \pi & -\frac{\pi}{8} & -\frac{\pi}{6} & 0.0 & 0.0 & 0.0 \end{bmatrix}$ rad and then move the second and fifth joints of the UR5 robot. The two joints will move following a sinusoidal trajectory during the first 4 seconds and maintain a constant joint position during the last second. The function to generate the sinusoidal reference is described in Algorithm \ref{lst:sine_reference_generator} and the rosnode file to move the second and fifth joints of UR5 robot with the required movement is described in Algorithm \ref{lst:rosnode_sine_reference_generator}. Finally, Figure \ref{fig:act_1.1_joint_position}-\ref{fig:act_1.1_joint_acceleration} show the joint position, velocity and acceleration of each joint of the UR5 robot.\vspace{5px}
+\begin{lstlisting}[language=Python,caption=Function to generate sinusoidal reference., label={lst:sine_reference_generator}]
+def sinusoidal_reference_generator(q0, a, f, t):
+"""
+Info: generates a sine signal.
+
+Inputs: 
+------
+    - q0: initial joint position
+    - dq0: initial joint velocity
+    - ddq0: initial joint acceleration
+    - a: amplitude [rad]
+    - f: frecuency [hz]
+    - t: simulation time [sec]
+Outputs:
+-------
+    - q: angular position
+"""
+w = 2*np.pi*f               # [rad/s]
+q = q0 + a*np.sin(w*t)           # [rad]
+dq = a*w*np.cos(w*t)        # [rad/s]
+ddq = -a*w*w*np.sin(w*t)    # [rad/s^2]
+
+return q, dq, ddq
+\end{lstlisting}
+
+\begin{lstlisting}[language=Python,caption={Move the second and fifth joint of UR5 robot with the required movement of activity 1.1.} ,label={ lst:rosnode_sine_reference_generator}]
+# =========================
+#   Configuration of node
+# =========================
+# create a node: 
+rospy.init_node("node_sinusoidal_reference_generation")
+
+# public in topic /joint_states	to send joint data	
+pub = rospy.Publisher('joint_states', JointState, queue_size=1000)
+
+# loop rate (in Hz)
+rate 	= rospy.Rate(1000)		# [Hz]
+dt 		= 1e-3					# [ms]
+
+# object(message) type JointState
+jstate = JointState()
+
+# ===========================
+#   UR5 robot configuration
+# ===========================
+# joints name of UR5 robot
+jnames = ['shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint','wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint']
+# number of degress of freedom
+ndof = 6
+
+# ==========================================
+#   Set initial joint configuration of UR5
+# ==========================================
+# initial configuration: position, velocity and acceleration 
+q0   = np.array([np.pi, -np.pi/8,  -np.pi/6, 0.0, 0.0, 0.0])
+dq0  = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+ddq0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+
+# desired trajectory: position, velocity and acceleration
+q_des   = np.array([np.pi, -np.pi/8,  -np.pi/6, 0.0, 0.0, 0.0]) 
+dq_des  = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+ddq_des = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+
+#===============
+#   Simulation
+#===============
+t = 0.0             # [sec] 
+sim_duration = 5.0  # [sec]
+sine_duration = 4.0 # [sec]
+
+while not rospy.is_shutdown():
+ # generate sinusoidal joint reference
+ if t<=sine_duration:
+     # second link
+     q_des[1], dq_des[1], ddq_des[1] = sinusoidal_reference_generator(q0[1], 0.2, 1, t)
+     last_q_des_1 = q_des[1]
+     # fifth link
+     q_des[4], dq_des[4], ddq_des[4] = sinusoidal_reference_generator(q0[4], 0.4, 1.5, t)  
+     last_q_des_4 = q_des[4]  
+ else:
+     # second link
+     q_des[1], dq_des[1], ddq_des[1] = step_reference_generator(0, last_q_des_1)
+     # fifth link
+     q_des[4], dq_des[4], ddq_des[4] = step_reference_generator(0 , last_q_des_4)
+
+    # publish message
+    jstate.header.stamp = rospy.Time.now()
+    jstate.name 		= jnames    # Joints position name
+    jstate.position 	= q_des     # joint position
+    jstate.velocity 	= dq_des    # joint velocity
+    pub.publish(jstate)
+
+    # update time
+    t = t + dt
+
+    # stop simulation
+    if t>=sim_duration:
+        print("stopping rviz ...")
+        break  
+    rate.sleep()
+\end{lstlisting}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics{images/act_1.1/joint_position.eps}
+    \caption{Angular position of each joint of UR5 robot with Algorithm \ref{lst:rosnode_sine_reference_generator}.}
+    \label{fig:act_1.1_joint_position}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics{images/act_1.1/joint_velocity.eps}
+    \caption{Angular velocity of each joint of UR5 robot with Algorithm \ref{lst:rosnode_sine_reference_generator}.}
+    \label{fig:act_1.1_joint_velocity}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics{images/act_1.1/joint_acceleration.eps}
+    \caption{Angular acceleration of each joint of UR5 robot with Algorithm \ref{lst:rosnode_sine_reference_generator}.}
+    \label{fig:act_1.1_joint_acceleration}
+\end{figure}

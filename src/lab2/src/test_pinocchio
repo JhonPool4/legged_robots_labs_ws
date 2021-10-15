@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+
+#import pinocchio as pin
+from pinocchio.robot_wrapper import RobotWrapper
+import pinocchio as pin
+import os
+import numpy as np
+import rbdl
+
+pwd = os.path.dirname(os.path.realpath(__file__))
+ur5_urdf_file = os.path.join(pwd,'../../ur5_description/urdf/labs_ur5.urdf')
+
+ur5_robot = RobotWrapper.BuildFromURDF(ur5_urdf_file)  
+
+q =   np.array([np.pi, -np.pi/8,  -np.pi/6, 0.0, 0.0, 0.0])
+dq =  np.array([0.0, 0.4*np.pi, 0.0, 0.0, 1.2*np.pi, 0.0]) 
+ddq = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+
+
+print("Dof: ", ur5_robot.model.nq)
+print("vq: ", ur5_robot.model.nv)
+
+
+
+
+# compute dynamic drift -- Coriolis, centrifugal, gravity
+b = pin.rnea(ur5_robot.model, ur5_robot.data, q, dq, ddq)
+# compute mass matrix M
+M = pin.crba(ur5_robot.model, ur5_robot.data, q)
+
+print("Pinocchio: inertia matrix")
+print(M)
+
+M_rbdl = np.zeros([6,6])
+ur5_robot_rbdl = rbdl.loadModel(ur5_urdf_file)
+rbdl.CompositeRigidBodyAlgorithm(ur5_robot_rbdl, q, M_rbdl)
+print("/n/nRbdl: inertia matrix")
+print(M_rbdl)
+print("/n/nDifference")
+print(M-M_rbdl)
+
+
+print("Pinocchio: nonlinear effects vector")
+print(b)
+# ==========================
+b_rbdl = np.zeros(6)
+ur5_robot_rbdl = rbdl.loadModel(ur5_urdf_file)
+rbdl.NonlinearEffects(ur5_robot_rbdl, q, dq, b_rbdl) 
+print("/n/nRbdl: inertia matrix")
+print(b_rbdl)
+
+print("/n/nDifference")
+print(b-b_rbdl)
