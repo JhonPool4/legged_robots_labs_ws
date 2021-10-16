@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!-- info: display ur5 robot on rviz-->
+<launch>
+    <!-- display ur5 robot on rviz-->
+    <include file="$(find lab3)/launch/display_ur5_rviz.launch">
+        <arg name="rviz_config_file" value="$(find lab3)/config/labs_view_ur5.rviz"/>       
+    </include>
+	<!-- Call a service that show a gui to modify joint angles-->
+	<node name="joint_state_publisher" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" output="screen" >
+		<param name="joint_state_publisher_gui" value="true"/>
+	</node>
+</launch>
