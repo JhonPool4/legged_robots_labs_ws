@@ -15,7 +15,7 @@ import rospy
 import pandas as pd
 import numpy as np
 from sensor_msgs.msg import JointState
-from lab_functions import *
+from labpythonlib.lab_functions import *
 
 
 # =============
