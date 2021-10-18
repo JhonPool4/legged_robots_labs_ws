@@ -103,7 +103,6 @@ ur5_robot = Robot(q0, dq0, dt, urdf_path)
 p0 = ur5_robot.get_ee_position()
 dp0 = np.array([0.0, 0.0, 0.0])
 ddp0 = np.array([0.0, 0.0, 0.0])
-print("initial position: ", p0)
 
 # desired cartesian trajectory: position, velocity and acceleration
 p_des = copy(p0)
@@ -143,11 +142,7 @@ while not rospy.is_shutdown():
     q_des = ur5_robot.inverse_kinematics_position(p_des, q_des)
     dq_des = np.dot(J_inv, p_des)
     ddq_des = np.dot(J_inv, ddp_des - np.dot(dJ, dq_des))
-
-    print("\nq_des: ", q_des)
-    print("\ndq_des: ", dq_des)
-    print("\nddq_des: ", ddq_des)
-   
+  
     # publish message
     jstate.header.stamp = rospy.Time.now()
     jstate.name 		= jnames			# Joints position name
@@ -157,7 +152,7 @@ while not rospy.is_shutdown():
 
     # update time
     t = t + dt
-    break
+    
     # Append data
     row =   tl(np.array([t])) + \
             tl(p_des) + tl(dp_des) + tl(ddp_des) + \
