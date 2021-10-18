@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 from copy import copy
 from sensor_msgs.msg import JointState
-from lab_functions import *
-from markers import *
+from labpythonlib.lab_functions import *
+from labpythonlib.lab_markers import *
 
 # =========================
 #   Configuration of node
@@ -29,8 +29,9 @@ jstate = JointState()
 #   Set initial joint configuration of UR5
 # ==========================================
 # measured trajectory: position, velocity and acceleration
-q0 =   np.array([np.pi, -np.pi/8,  -np.pi/6, 0.0, 0.0, 0.0])
-q_des =   np.array([np.pi, -np.pi/8,  -np.pi/6, 0.0, 0.0, 0.0]) 
+#q0 =   np.array([np.pi, -np.pi/8,  -np.pi/6, 0.0, 0.0, 0.0])
+q0 =   np.array([ 0.0, -1, 1, 0.5, 0, 0.5])
+q_des =   np.array([ 0.0, -1, 1, 0.5, 0, 0.5])
 dq_des =  np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
 ddq_des = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
 # ===========================
@@ -53,7 +54,9 @@ t = 0.0             # [sec]
 sim_duration = 5.0  # [sec]
 sine_duration = 100.0 # [sec]
 
+
 while not rospy.is_shutdown():
+    """
     # generate sinusoidal joint reference
     if t<=sine_duration:
         # second link
@@ -67,7 +70,7 @@ while not rospy.is_shutdown():
         q_des[1], dq_des[1], ddq_des[1] = step_reference_generator(0, last_q_des_1)
         # fifth link
         q_des[4], dq_des[4], ddq_des[4] = step_reference_generator(0 , last_q_des_4)
-
+    """
     # publish message
     jstate.header.stamp = rospy.Time.now()
     jstate.name 		= jnames			# Joints position name
@@ -82,3 +85,4 @@ while not rospy.is_shutdown():
 
 
     rate.sleep()
+    
