@@ -94,6 +94,26 @@ class Robot(object):
         # initial configuration: position and orientation
         self.p, self.R = self.forward_kinematics(self.q)
 
+    def forward_kinematics(self, q0):
+        """
+        Info: computes the position (xyz) and rotation (R) of the end-effector.
+
+        Inputs:
+        -----
+            - q0: joint configuration (rad)
+        
+        Outputs:
+        -------
+            - p: position of the end-effector (m).
+            - R: rotation matrix of the end-effector (rad).
+        """      
+        # commpute forward kinematics
+        pin.forwardKinematics(self.robot.model, self.robot.data, q0) 
+        # get position and orientation       
+        p = pin.updateFramePlacement(self.robot.model, self.robot.data, self.frame_ee).translation
+        R = pin.updateFramePlacement(self.robot.model, self.robot.data, self.frame_ee).rotation
+        return p, R
+
     def jacobian(self, q0):
         """
         Info: computes jacobian matrix of the end-effector.
@@ -105,9 +125,11 @@ class Robot(object):
         -------
             - J: jacobian matrix            
         """
-        self.robot.computeJointJacobians(q0)
-        self.robot.framesForwardKinematics(q0)
-        J = self.robot.getFrameJacobian(self.frame_ee, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
+        # commpute frames placement (it's necessary!)
+        pin.framesForwardKinematics(self.robot.model, self.robot.data, q0)
+        # compute jacobian matrix (end-effector frame)
+        pin.computeJointJacobians(self.robot.model, self.robot.data, q0)
+        J = pin.getFrameJacobian(self.robot.model, self.robot.data, self.frame_ee, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
         return J
     
     def jacobian_time_derivative(self, q0, dq0):
@@ -122,9 +144,11 @@ class Robot(object):
         -------
             - dJ: time derivative of jacobian matrix            
         """        
-        #self.robot.computeJointJacobiansTimeVariation(q0, dq0)
+        # compute frames placement (it's necessary!)
+        pin.framesForwardKinematics(self.robot.model, self.robot.data, q0)
+        # compute time-derivative of jacobian matrix (end-effector frame)
         pin.computeJointJacobiansTimeVariation(self.robot.model, self.robot.data, q0, dq0)
-        dJ = self.robot.getJointJacobianTimeVariation(self.frame_ee, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
+        dJ = pin.getFrameJacobianTimeVariation(self.robot.model, self.robot.data, self.frame_ee, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
         return dJ
 
     def jacobian_damped_inv(self, J, lambda_=0.0000001):
@@ -142,27 +166,10 @@ class Robot(object):
         J_damped_inv =  np.dot(J.T, np.linalg.inv(np.dot(J, J.T) + lambda_*np.eye(3)))
         return J_damped_inv
 
-    def forward_kinematics(self, q0):
-        """
-        Info: computes the position (xyz) and rotation(R) of the end-effector.
-
-        Inputs:
-        -----
-            - q0: joint configuration (rad)
-        
-        Outputs:
-        -------
-            - p: position of the end-effector (m).
-            - R: rotation matrix of the end-effector (rad).
-        """      
-        p = self.robot.framePlacement(q0, self.frame_ee, True).translation
-        R = self.robot.framePlacement(q0, self.frame_ee, True).rotation
-        return p, R
-
     def send_control_command(self, u):
         """
         Info: uses the control signal (u) to compute forward dynamics (ddq). 
-              Then update joint configuration (q)
+              Then update joint configuration (q) and end-effector pose (p, R)
         """
         tau = np.squeeze(np.asarray(u))
         # compute dynamics model
@@ -174,16 +181,18 @@ class Robot(object):
         # update joint position/configuration
         self.dq = self.dq + self.dt*self.ddq
         self.q = self.q + self.dt*self.dq + 0.5*self.dt*self.dt*self.ddq
+        # update end-effector position and orientation
+        self.p, self.R = self.forward_kinematics(self.q)
 
     def inverse_kinematics_position(self, x_des, q0):
         """
         @info: computes inverse kinematics with the method of damped pseudo-inverse.
 
-        Inputs:
+        @inputs:
         -------
             - xdes  :   desired position vector
             - q0    :   initial joint configuration (it's very important)
-        Outputs:
+        @outputs:
         --------        
             - q_best  : joint position
         """         
