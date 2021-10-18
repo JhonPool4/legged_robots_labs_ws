@@ -12,18 +12,28 @@ ur5_urdf_file = os.path.join(pwd,'../../ur5_description/urdf/labs_ur5.urdf')
 
 # load urdf
 ur5_robot = RobotWrapper.BuildFromURDF(ur5_urdf_file)  
-joint_id = ur5_robot.model.getFrameId('ee_link') 
+joint_id = 6#ur5_robot.model.getJointId('ee_link') 
+frame_id = ur5_robot.model.getFrameId('ee_link')
+print("joint id: ", joint_id)
+print("frame id: ", frame_id)
 
 # joint position and velocity
-q =   np.array([np.pi, -np.pi/8,  -np.pi/6, 0.0, 0.0, 0.0])
-dq =  np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+q =   np.array([ 0.0, -1, 1, 0.5, 0, 0.5])
+dq =  np.array([0.0, 0.0, 0.2, 0.0, 0.3, 0.0]) 
+
+# 
+print("forward: ",pin.updateFramePlacement(ur5_robot.model, ur5_robot.data, frame_id).translation)
+
+
+
+# forward kinematics + update
+pin.framesForwardKinematics(ur5_robot.model, ur5_robot.data, q)
 
 # compute jacobian
-ur5_robot.computeJointJacobians(q)
-J = ur5_robot.getFrameJacobian(joint_id, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
+pin.computeJointJacobians(ur5_robot.model, ur5_robot.data, q)
+J = pin.getFrameJacobian(ur5_robot.model, ur5_robot.data, frame_id, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
 print("\nJacobian:\n ", J)
 
 # compute derivative in time of jacobian
-pin.computeJointJacobiansTimeVariation( ur5_robot.model, ur5_robot.data, q, dq)
-dJ = ur5_robot.getJointJacobianTimeVariation(joint_id, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
+dJ = pin.getJointJacobianTimeVariation(ur5_robot.model, ur5_robot.data, 6, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
 print("\ndJacobian:\n ", dJ)
