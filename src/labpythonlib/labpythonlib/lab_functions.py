@@ -1,8 +1,8 @@
-# ===============================================================
-#	Course  :   Legged robots
-# 	Alumno  :   Jhon Charaja
+# ===============================================
+#	Course  :   legged robots
+# 	Alumno  :   jhon charaja
 # 	Info	:	useful functions for laboratory
-# ===============================================================
+# ===============================================
 
 # ======================
 #   required libraries
@@ -65,29 +65,156 @@ class Robot(object):
     Info: Class to load the .urdf of a robot. For thism Pinocchio library is used
     """    
     def __init__(self, q0, dq0, dt, urdf_path):
+        # robot object
         self.robot = pin.robot_wrapper.RobotWrapper.BuildFromURDF(urdf_path)
+        # degrees of freedom
         self.ndof = self.robot.model.nq
+        # joint configuration: position, velocity and acceleration
         self.q = copy(q0)                
         self.dq = copy(dq0)               
         self.ddq = np.zeros(self.ndof)
+        # inertia matrix
         self.M = np.zeros([self.ndof, self.ndof])
+        # nonlinear effects vector
         self.b = np.zeros(self.ndof)
+        # gravivty effects vector
         self.g = np.zeros(self.ndof)
+        # vector of zeros
         self.z = np.zeros(self.ndof)
-        self.dt = copy(dt)        
+        # jacobian matrix
+        self.J = np.zeros([self.ndof, self.ndof]) # 6x6 (position and orientation) 
+        # sampling time
+        self.dt = copy(dt)     
+        # frame id: end-effector
+        self.frame_ee = self.robot.model.getFrameId('ee_link') 
+        # end-effector: position
+        self.p = np.zeros(3)
+        # end-effector: orientation
+        self.R = np.zeros([3,3])
+        # initial configuration: position and orientation
+        self.p, self.R = self.forward_kinematics(self.q)
+
+    def jacobian(self, q0):
+        """
+        Info: computes jacobian matrix of the end-effector.
+
+        Inputs:
+        ------
+            - q0: joint configuration (rad)
+        Outputs:
+        -------
+            - J: jacobian matrix            
+        """
+        self.robot.computeJointJacobians(q0)
+        self.robot.framesForwardKinematics(q0)
+        J = self.robot.getFrameJacobian(self.frame_ee, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
+        return J
+    
+    def jacobian_time_derivative(self, q0, dq0):
+        """
+        Info: computes time derivative of jacobian matrix of the end-effector.
+
+        Inputs:
+        ------
+            - q0: joint position/configuration (rad)
+            - dq0: joint velocity (rad/s)
+        Outputs:
+        -------
+            - dJ: time derivative of jacobian matrix            
+        """        
+        #self.robot.computeJointJacobiansTimeVariation(q0, dq0)
+        pin.computeJointJacobiansTimeVariation(self.robot.model, self.robot.data, q0, dq0)
+        dJ = self.robot.getJointJacobianTimeVariation(self.frame_ee, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
+        return dJ
+
+    def jacobian_damped_inv(self, J, lambda_=0.0000001):
+        """
+        Info: computes inverse jabobian using damped pseudo-inverse method
+
+        Inputs:
+        ------
+            - J: position jacobian [3 x ndof]
+            - lambda_ : damping term (optional)
+        Outputs:
+        -------
+            - J_damped_inv: inverse of jacobian matrix            
+        """
+        J_damped_inv =  np.dot(J.T, np.linalg.inv(np.dot(J, J.T) + lambda_*np.eye(3)))
+        return J_damped_inv
+
+    def forward_kinematics(self, q0):
+        """
+        Info: computes the position (xyz) and rotation(R) of the end-effector.
+
+        Inputs:
+        -----
+            - q0: joint configuration (rad)
+        
+        Outputs:
+        -------
+            - p: position of the end-effector (m).
+            - R: rotation matrix of the end-effector (rad).
+        """      
+        p = self.robot.framePlacement(q0, self.frame_ee, True).translation
+        R = self.robot.framePlacement(q0, self.frame_ee, True).rotation
+        return p, R
 
     def send_control_command(self, u):
+        """
+        Info: uses the control signal (u) to compute forward dynamics (ddq). 
+              Then update joint configuration (q)
+        """
         tau = np.squeeze(np.asarray(u))
+        # compute dynamics model
         self.M = pin.crba(self.robot.model, self.robot.data, self.q)
         self.b = pin.rnea(self.robot.model, self.robot.data, self.q, self.dq, self.z)
         self.g = pin.rnea(self.robot.model, self.robot.data, self.q, self.z, self.z)
-
+        # forward dynamics
         self.ddq = np.linalg.inv(self.M).dot(tau-self.b)
+        # update joint position/configuration
         self.dq = self.dq + self.dt*self.ddq
         self.q = self.q + self.dt*self.dq + 0.5*self.dt*self.dt*self.ddq
 
+    def inverse_kinematics_position(self, x_des, q0):
+        """
+        @info: computes inverse kinematics with the method of damped pseudo-inverse.
+
+        Inputs:
+        -------
+            - xdes  :   desired position vector
+            - q0    :   initial joint configuration (it's very important)
+        Outputs:
+        --------        
+            - q_best  : joint position
+        """         
+        best_norm_e     = 1e-6 
+        max_iter        = 10
+        delta           = 1
+        lambda_         = 0.0000001
+        q               = copy(q0)
+
+        for i in range(max_iter):
+            p, _ = self.forward_kinematics(q) # current position
+            e   = x_des - p      # position error
+            J   = self.jacobian(q)[0:3, 0:self.ndof] # position jacobian (xyz)
+            J_damped_inv =  self.jacobian_damped_inv(J, lambda_) # inverse jacobian
+            dq  = np.dot(J_damped_inv, e)
+            q   = q + delta*dq
+                       
+            # evaluate convergence criterion
+            if (np.linalg.norm(e)<best_norm_e):
+                best_norm_e = np.linalg.norm(e)
+                q_best = copy(q) 
+        return q_best 
+
     def read_joint_position_velocity_acceleration(self):
         return self.q, self.dq, self.ddq
+
+    def get_ee_position(self):
+        return self.p
+    
+    def get_ee_orientation(self):
+        return self.R
 
     def get_M(self):
         return self.M
@@ -99,6 +226,20 @@ class Robot(object):
         return self.g
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+# currenty not neccesary
 def dh(d, theta, a, alpha):
     """
     Info: Computes homogeneous transformation matrix for Denavit-Hartenverg parameters of UR5 robot.
@@ -123,7 +264,7 @@ def dh(d, theta, a, alpha):
 
 def fkine_ur5(q):
     """
-    Info: Computes forward kinematics of UR5 robot.
+    Info: Computes forward kinematics of UR5 robot. With respect to base frame
 
     Inputs:
     -----
@@ -176,3 +317,4 @@ def jacobian_xyz_ur5(q, delta=0.0001):
         dT      = fkine_ur5(dq)
         J[:,i]  = (dT[0:3,3] - T[0:3,3])/delta
     return J        
+
