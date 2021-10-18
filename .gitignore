@@ -10,6 +10,9 @@ src/lab2/document/main.out
 src/lab2/document/main.pdf
 src/lab2/document/main.synctex.gz
 
+src/lab3/document
+src/lab3/data
+
 src/labpythonlib/build
 src/labpythonlib/dist
 src/labpythonlib/labpythonlib.egg-info
