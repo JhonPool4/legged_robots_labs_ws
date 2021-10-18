@@ -10,6 +10,8 @@ src/lab2/document/main.out
 src/lab2/document/main.pdf
 src/lab2/document/main.synctex.gz
 
-src/labpythonlib/labpythonlib.egg-info/PKG-INFO
+src/labpythonlib/build
+src/labpythonlib/dist
+src/labpythonlib/labpythonlib.egg-info
 src/labpythonlib/dist/labpythonlib-0.0.2-py3-none-any.whl
 
