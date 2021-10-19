@@ -81,18 +81,23 @@ class Robot(object):
         self.g = np.zeros(self.ndof)
         # vector of zeros
         self.z = np.zeros(self.ndof)
-        # jacobian matrix
-        self.J = np.zeros([self.ndof, self.ndof]) # 6x6 (position and orientation) 
         # sampling time
         self.dt = copy(dt)     
         # frame id: end-effector
         self.frame_ee = self.robot.model.getFrameId('ee_link') 
-        # end-effector: position
+        # end-effector: position, velocity and acceleration
         self.p = np.zeros(3)
+        self.dp = np.zeros(3)
+        self.ddp = np.zeros(3)
         # end-effector: orientation
         self.R = np.zeros([3,3])
-        # initial configuration: position and orientation
+        # initial configuration: position (p) and orientation (R)
         self.p, self.R = self.forward_kinematics(self.q)
+        # initial configuration: dynamic model
+        self.M = pin.crba(self.robot.model, self.robot.data, self.q)
+        self.b = pin.rnea(self.robot.model, self.robot.data, self.q, self.dq, self.z)
+        self.g = pin.rnea(self.robot.model, self.robot.data, self.q, self.z, self.z)        
+  
 
     def forward_kinematics(self, q0):
         """
@@ -125,8 +130,6 @@ class Robot(object):
         -------
             - J: jacobian matrix            
         """
-        # commpute frames placement (it's necessary!)
-        pin.framesForwardKinematics(self.robot.model, self.robot.data, q0)
         # compute jacobian matrix (end-effector frame)
         pin.computeJointJacobians(self.robot.model, self.robot.data, q0)
         J = pin.getFrameJacobian(self.robot.model, self.robot.data, self.frame_ee, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
@@ -144,14 +147,12 @@ class Robot(object):
         -------
             - dJ: time derivative of jacobian matrix            
         """        
-        # compute frames placement (it's necessary!)
-        pin.framesForwardKinematics(self.robot.model, self.robot.data, q0)
         # compute time-derivative of jacobian matrix (end-effector frame)
         pin.computeJointJacobiansTimeVariation(self.robot.model, self.robot.data, q0, dq0)
         dJ = pin.getFrameJacobianTimeVariation(self.robot.model, self.robot.data, self.frame_ee, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
         return dJ
 
-    def jacobian_damped_inv(self, J, lambda_=0.0000001):
+    def jacobian_damped_pinv(self, J, lambda_=0.0000001):
         """
         Info: computes inverse jabobian using damped pseudo-inverse method
 
@@ -181,8 +182,13 @@ class Robot(object):
         # update joint position/configuration
         self.dq = self.dq + self.dt*self.ddq
         self.q = self.q + self.dt*self.dq + 0.5*self.dt*self.dt*self.ddq
-        # update end-effector position and orientation
+        # compute new jacobians
+        J = self.jacobian(self.q)[0:3, 0:self.ndof] # position xyz
+        dJ = self.jacobian_time_derivative(self.q, self.dq)[0:3, 0:self.ndof] # position xyz
+        # update end-effector: position, velocity, acceleration and orientation
         self.p, self.R = self.forward_kinematics(self.q)
+        self.dp = np.dot(J, self.dq)
+        self.ddp = np.dot(J, self.ddq) + np.dot(dJ, self.dq)
 
     def inverse_kinematics_position(self, x_des, q0):
         """
@@ -205,8 +211,8 @@ class Robot(object):
         for i in range(max_iter):
             p, _ = self.forward_kinematics(q) # current position
             e   = x_des - p      # position error
-            J   = self.jacobian(q)[0:3, 0:self.ndof] # position jacobian (xyz)
-            J_damped_inv =  self.jacobian_damped_inv(J, lambda_) # inverse jacobian
+            J   = self.jacobian(q)[0:3, 0:self.ndof] # position jacobian [3x6]
+            J_damped_inv =  self.jacobian_damped_pinv(J, lambda_) # inverse jacobian [6x3]
             dq  = np.dot(J_damped_inv, e)
             q   = q + delta*dq
                        
@@ -218,6 +224,9 @@ class Robot(object):
 
     def read_joint_position_velocity_acceleration(self):
         return self.q, self.dq, self.ddq
+
+    def read_cartesian_position_velocity_acceleration(self):
+        return self.p, self.dp, self.ddp
 
     def get_ee_position(self):
         return self.p
