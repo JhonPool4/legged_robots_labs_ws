@@ -1,6 +1,7 @@
 build
 devel
 src/CMakeLists.txt
+src/lab2/data
 src/lab2/document/main.aux
 src/lab2/document/main.bbl
 src/lab2/document/main.blg
