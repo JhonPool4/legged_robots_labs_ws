@@ -21,19 +21,18 @@ print("frame id: ", frame_id)
 q =   np.array([ 0.0, -1, 1, 0.5, 0, 0.5])
 dq =  np.array([0.0, 0.0, 0.2, 0.0, 0.3, 0.0]) 
 
-# 
-print("forward: ",pin.updateFramePlacement(ur5_robot.model, ur5_robot.data, frame_id).translation)
-
 
 
 # forward kinematics + update
-pin.framesForwardKinematics(ur5_robot.model, ur5_robot.data, q)
+#pin.framesForwardKinematics(ur5_robot.model, ur5_robot.data, q)
 
 # compute jacobian
 pin.computeJointJacobians(ur5_robot.model, ur5_robot.data, q)
 J = pin.getFrameJacobian(ur5_robot.model, ur5_robot.data, frame_id, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
 print("\nJacobian:\n ", J)
 
+
 # compute derivative in time of jacobian
-dJ = pin.getJointJacobianTimeVariation(ur5_robot.model, ur5_robot.data, 6, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
+pin.computeJointJacobiansTimeVariation(ur5_robot.model, ur5_robot.data, q, dq)
+dJ = pin.getFrameJacobianTimeVariation(ur5_robot.model, ur5_robot.data, frame_id, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
 print("\ndJacobian:\n ", dJ)
