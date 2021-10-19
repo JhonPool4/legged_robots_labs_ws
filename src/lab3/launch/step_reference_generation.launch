@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!-- info: display ur5 robot on rviz-->
+<launch>
+    <!-- display ur5 robot on rviz-->
+    <include file="$(find lab3)/launch/display_ur5_rviz.launch">
+        <arg name="rviz_config_file" value="$(find lab3)/config/lab3_view_ur5.rviz"/>       
+    </include>
+	<!-- rosnode to move ur5 robot-->
+	<node name="step_reference_generation" pkg="lab3" type="step_reference_generation" output="screen" />
+</launch>
