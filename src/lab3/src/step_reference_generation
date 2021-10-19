@@ -3,8 +3,8 @@
 #	Curso   :   Legged robots
 # 	Alumno  :   Jhon Charaja
 #   Lab     :   3 (Task space motion control)
-#   Activity:   3.1
-# 	Info	:	sinusoidal reference in x axis
+#   Activity:   3.2
+# 	Info	:	step reference in x axis
 # ===============================================================
 
 # =============
@@ -21,7 +21,7 @@ from labpythonlib.lab_functions import *
 # directory to save data
 origin 	= '../data/'
 matlab = "../document/images/"
-suffix 	= 'act_3.1'
+suffix 	= 'act_3.2'
 pwd = os.path.dirname(os.path.realpath(__file__))
 data_folder = os.path.join(pwd, origin, suffix)
 matlab_folder = os.path.join(pwd, matlab, suffix)
@@ -55,7 +55,7 @@ df.to_csv(path, index=False)
 #   Configuration of node
 # =========================
 # create a node: 
-rospy.init_node("sinusoidal_reference_x")
+rospy.init_node("step_reference_x")
 
 # public in topic /joint_states	to send joint data	
 pub = rospy.Publisher('joint_states', JointState, queue_size=1000)
@@ -118,17 +118,13 @@ ddp = np.array([0.0, 0.0, 0.0])
 # ===============
 t = 0.0             # [sec] 
 sim_duration = 5.0  # [sec]
-sine_duration = 4.0 # [sec]
+step_start = 2.0 # [sec]
 
 while not rospy.is_shutdown():
     # desired cartesian trajectory
-    if t<=sine_duration:
-        # x axis 
-        p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, t)
-        last_x_des = p_des[0]  
-    else:
-        # x axis
-        p_des[0], dp_des[0], ddp_des[0] = step_reference_generator(0, last_x_des)
+    if t>=step_start:
+        # z axis 
+        p_des[2], dp_des[2], ddp_des[2] = step_reference_generator(p0[0], 0.1)
 
     # jacobian: position xyz [3x6]
     J = ur5_robot.jacobian(q_des)[0:3, 0:6] 

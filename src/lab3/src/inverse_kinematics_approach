@@ -3,8 +3,8 @@
 #	Curso   :   Legged robots
 # 	Alumno  :   Jhon Charaja
 #   Lab     :   3 (Task space motion control)
-#   Activity:   3.1
-# 	Info	:	sinusoidal reference in x axis
+#   Activity:   3.3
+# 	Info	:	PD control method + sinusoidal reference in x axis
 # ===============================================================
 
 # =============
@@ -21,7 +21,7 @@ from labpythonlib.lab_functions import *
 # directory to save data
 origin 	= '../data/'
 matlab = "../document/images/"
-suffix 	= 'act_3.1'
+suffix 	= 'act_3.3'
 pwd = os.path.dirname(os.path.realpath(__file__))
 data_folder = os.path.join(pwd, origin, suffix)
 matlab_folder = os.path.join(pwd, matlab, suffix)
@@ -35,6 +35,14 @@ if not os.path.exists(matlab_folder):
 
 column_names = [
     't',
+
+    'x_med', 'y_med', 'z_med',
+    'dx_med', 'dy_med', 'dz_med',
+    'ddx_med', 'ddy_med', 'ddz_med',
+
+    'q1_med', 'q2_med', 'q3_med', 'q4_med', 'q5_med', 'q6_med',
+    'dq1_med', 'dq2_med', 'dq3_med', 'dq4_med', 'dq5_med', 'dq6_med',
+    'ddq1_med', 'ddq2_med', 'ddq3_med', 'ddq4_med', 'ddq5_med', 'ddq6_med', 
 
     'x_des', 'y_des', 'z_des',
     'dx_des', 'dy_des', 'dz_des',
@@ -55,7 +63,7 @@ df.to_csv(path, index=False)
 #   Configuration of node
 # =========================
 # create a node: 
-rospy.init_node("sinusoidal_reference_x")
+rospy.init_node("inverse_kinematics_approach")
 
 # public in topic /joint_states	to send joint data	
 pub = rospy.Publisher('joint_states', JointState, queue_size=1000)
@@ -70,20 +78,20 @@ jstate = JointState()
 # ==========================================
 #   Set initial joint configuration of UR5
 # ==========================================
-# initial joint configuration: position, velocity and acceleration 
+# initial configuration: position, velocity and acceleration 
 q0 =   np.array([ 0.0, -1.0, 1.0, 0.5, 0.0, 0.5])
 dq0 =  np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
 ddq0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
 
-# desired joint trajectory: position, velocity and acceleration
+# desired trajectory: position, velocity and acceleration
 q_des =   np.array([ 0.0, -1.0, 1.0, 0.5, 0.0, 0.5])
 dq_des =  np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
 ddq_des = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
 
-# measured joint trajectory: position, velocity and acceleration
-q =   np.array([ 0.0, -1.0, 1.0, 0.5, 0.0, 0.5])
-dq =  np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
-ddq = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+# measured trajectory: position, velocity and acceleration
+q_med =   np.array([ 0.0, -1.0, 1.0, 0.5, 0.0, 0.5])
+dq_med =  np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+ddq_med = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
 
 # ===========================
 #   UR5 robot configuration
@@ -94,6 +102,15 @@ jnames = ['shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint','wrist_1_jo
 urdf_path = os.path.join(pwd, "../../ur5_description/urdf/labs_ur5.urdf")
 # the class robot load labs_ur5.urdf
 ur5_robot = Robot(q0, dq0, dt, urdf_path)
+# number of degress of freedom
+ndof = ur5_robot.ndof
+
+# create inertia matrix 
+M = np.zeros([ndof,ndof])
+# create nonlinear effects vector
+b = np.zeros(ndof)
+# create gravity vector
+g = np.zeros(ndof)
 
 # ==============================================
 #   set initial cartesian configuration of UR5
@@ -109,16 +126,26 @@ dp_des = np.array([0.0, 0.0, 0.0])
 ddp_des = np.array([0.0, 0.0, 0.0])
 
 # measured cartesian trajectory: position, velocity and acceleration
-p = copy(p0)
-dp = np.array([0.0, 0.0, 0.0])
-ddp = np.array([0.0, 0.0, 0.0])
+p_med = copy(p0)
+dp_med = np.array([0.0, 0.0, 0.0])
+ddp_med = np.array([0.0, 0.0, 0.0])
 
-# ===============
+# ===============================
+#   PD controller configuration
+# ===============================
+# proportional gain
+kp = 600*np.ones(ndof)
+# derivative gain
+kd = 30*np.ones(ndof)
+# control vector
+tau = np.zeros(ndof)    
+
+#===============
 #   Simulation
-# ===============
+#===============
 t = 0.0             # [sec] 
 sim_duration = 5.0  # [sec]
-sine_duration = 4.0 # [sec]
+sine_duration = 4.0    # [sec]
 
 while not rospy.is_shutdown():
     # desired cartesian trajectory
@@ -141,19 +168,40 @@ while not rospy.is_shutdown():
     q_des = ur5_robot.inverse_kinematics_position(p_des, q_des)
     dq_des = np.dot(J_pinv, p_des)
     ddq_des = np.dot(J_pinv, ddp_des - np.dot(dJ, dq_des))
-  
+
+    # error: position and velocity
+    e 	=  q_des - q_med
+    de 	=  dq_des - dq_med    
+
+    # compute inertia matrix
+    M = ur5_robot.get_M()
+    # compute gravitational effects vector
+    g = ur5_robot.get_g()
+
+    # PD control method + gravity compensation
+    tau_ff = M.dot(ddq_des)
+    tau = tau_ff + np.multiply(kp, e) + np.multiply(kd, de) + g
+    
+    # send control signal
+    ur5_robot.send_control_command(tau)
+    # update states
+    q_med, dq_med, ddq_med = ur5_robot.read_joint_position_velocity_acceleration()
+    p_med, dp_med, ddp_med = ur5_robot.read_cartesian_position_velocity_acceleration()
+
     # publish message
     jstate.header.stamp = rospy.Time.now()
     jstate.name 		= jnames			# Joints position name
-    jstate.position 	= q_des
-    jstate.velocity 	= dq_des
+    jstate.position 	= q_med
+    jstate.velocity 	= dq_med
     pub.publish(jstate)
 
     # update time
     t = t + dt
-    
+
     # Append data
     row =   tl(np.array([t])) + \
+            tl(p_med) + tl(dp_med) + tl(ddp_med) +\
+            tl(q_med) + tl(dq_med) + tl(ddq_med) +\
             tl(p_des) + tl(dp_des) + tl(ddp_des) + \
             tl(q_des) + tl(dq_des) + tl(ddq_des)
     # Fix for redimensionality
