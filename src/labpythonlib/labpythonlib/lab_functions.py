@@ -15,42 +15,54 @@ from copy import copy
 # =============
 #   functions
 # =============
-def sinusoidal_reference_generator(q0, a, f, t):
+def sinusoidal_reference_generator(q0, a, f, t_change, t):
     """
     Info: generates a sine signal.
 
     Inputs: 
     ------
-        - q0: initial joint position
-        - a: amplitude [rad]
+        - q0: initial joint/cartesian position
+        - a: amplitude
         - f: frecuency [hz]
+        - t_change: change from sinusoidal to constant reference [sec]
         - t: simulation time [sec]
     Outputs:
     -------
-        - sinusoidal signal
+        - q, dq, ddq: joint/carteisan position, velocity and acceleration
     """
     w = 2*np.pi*f               # [rad/s]
-    q = q0 + a*np.sin(w*t)           # [rad]
-    dq = a*w*np.cos(w*t)        # [rad/s]
-    ddq = -a*w*w*np.sin(w*t)    # [rad/s^2]
-
+    if t<=t_change:
+        q = q0 + a*np.sin(w*t)      # [rad]
+        dq = a*w*np.cos(w*t)        # [rad/s]
+        ddq = -a*w*w*np.sin(w*t)    # [rad/s^2]
+    else:
+        q = q0 + a*np.sin(w*t_change)   # [rad]
+        dq = 0                          # [rad/s]
+        ddq = 0                         # [rad/s^2]
     return q, dq, ddq
 
-def step_reference_generator(q0, a):
+def step_reference_generator(q0, a, t_step, t):
     """
     Info: generate a constant reference.
 
     Inputs:
     ------
-        - q0: initial joint position
+        - q0: initial joint/cartesian position
         - a: constant reference
+        - t_step: start step [sec]
+        - t: simulation time [sec]
     Outputs:
     -------
-        - constant signal 
+        - q, dq, ddq: joint/carteisan position, velocity and acceleration
     """
-    q = q0 + a  # [rad]
-    dq = 0      # [rad/s]
-    ddq = 0     # [rad/s^2]
+    if t>=t_step:
+        q = q0 + a  # [rad]
+        dq = 0      # [rad/s]
+        ddq = 0     # [rad/s^2]
+    else:
+        q = copy(q0)    # [rad]
+        dq = 0          # [rad/s]
+        ddq = 0         # [rad/s^2]            
     return q, dq, ddq
 
 
