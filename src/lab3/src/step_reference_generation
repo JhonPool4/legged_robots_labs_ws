@@ -3,7 +3,7 @@
 #	Curso   :   Legged robots
 # 	Alumno  :   Jhon Charaja
 #   Lab     :   3 (Task space motion control)
-#   Activity:   3.2
+#   Activity:   1.2
 # 	Info	:	step reference in x axis
 # ===============================================================
 
@@ -21,7 +21,7 @@ from labpythonlib.lab_functions import *
 # directory to save data
 origin 	= '../data/'
 matlab = "../document/images/"
-suffix 	= 'act_3.2'
+suffix 	= 'act_1.2'
 pwd = os.path.dirname(os.path.realpath(__file__))
 data_folder = os.path.join(pwd, origin, suffix)
 matlab_folder = os.path.join(pwd, matlab, suffix)
@@ -122,9 +122,7 @@ step_start = 2.0 # [sec]
 
 while not rospy.is_shutdown():
     # desired cartesian trajectory
-    if t>=step_start:
-        # z axis 
-        p_des[2], dp_des[2], ddp_des[2] = step_reference_generator(p0[0], 0.1)
+    p_des[2], dp_des[2], ddp_des[2] = step_reference_generator(p0[0], 0.1, step_start, t)
 
     # jacobian: position xyz [3x6]
     J = ur5_robot.jacobian(q_des)[0:3, 0:6] 
