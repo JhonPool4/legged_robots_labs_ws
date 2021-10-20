@@ -2,7 +2,7 @@
 %	Curso   :   Legged robots
 % 	Alumno  :   Jhon Charaja
 %   Lab     :   3 (Task space motion control)
-%   Activity:   >= 3.3 
+%   Activity:   >= 1.3 
 % 	Info	:	trajectory tracking performances
 % ===============================================================
 clc, close all;
@@ -18,7 +18,7 @@ time = data.t;
 
 t_start = 1;
 t_step  = 1;
-t_end   = 5000;
+t_end   = length(time); %5000;
 % angular position: desired
 q_des= [    data.q1_des(t_start:t_step:t_end), ...
             data.q2_des(t_start:t_step:t_end), ...
@@ -240,7 +240,7 @@ for i=1:6
     plot_name = strcat( name_list(i),' ($\mathrm{\frac{rad}{s}}$)');
     subplot(3, 2, i),
     plot(time(t_start:t_step:t_end), dq_des(:, i), '-r', 'linewidth', 2), hold on, grid on, box on
-    plot(time(t_start:t_step:t_end), dq_des(:, i), '--k', 'linewidth', 2), hold on, grid on, box on
+    plot(time(t_start:t_step:t_end), dq_med(:, i), '--k', 'linewidth', 2), hold on, grid on, box on
     xlabel('time (s)', 'interpreter', 'latex')
     ylabel(plot_name, 'interpreter', 'latex')
     xticks(0:1:5)
@@ -278,7 +278,7 @@ for i=1:6
     plot_name = strcat( name_list(i),' ($\mathrm{\frac{rad}{s^2}}$)');
     subplot(3, 2, i),
     plot(time(t_start:t_step:t_end), ddq_des(:, i), '-r', 'linewidth', 2), hold on, grid on, box on
-    plot(time(t_start:t_step:t_end), ddq_des(:, i), '--k', 'linewidth', 2), hold on, grid on, box on
+    plot(time(t_start:t_step:t_end), ddq_med(:, i), '--k', 'linewidth', 2), hold on, grid on, box on
     xlabel('time (s)', 'interpreter', 'latex')
     ylabel(plot_name, 'interpreter', 'latex')
     xticks(0:1:5)
