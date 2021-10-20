@@ -2,12 +2,12 @@
 %	Curso   :   Legged robots
 % 	Alumno  :   Jhon Charaja
 %   Lab     :   3 (Task space motion control)
-%   Activity:   3.1 and 3.2
+%   Activity:   1.1 and 1.2
 % 	Info	:	sinusoidal and reference in x axis
 % ===============================================================
 clc, close all;
 
-act_dir  = 'act_1.3/'; % change with the activity name
+act_dir  = 'act_1.2/'; % change with the activity name
 file_name = 'data';
 file_path = fullfile('/home/jhon/catkin_ws/labs_ws/src/lab3/data/', act_dir);
 image_path = fullfile('/home/jhon/catkin_ws/labs_ws/src/lab3/document/images/', act_dir);

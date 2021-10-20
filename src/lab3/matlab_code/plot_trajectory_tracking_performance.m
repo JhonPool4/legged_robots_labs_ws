@@ -7,7 +7,7 @@
 % ===============================================================
 clc, close all;
 
-act_dir  = 'act_1.5/'; % change with the activity name
+act_dir  = 'act_1.6/'; % change with the activity name
 file_name = 'data';
 file_path = fullfile('/home/jhon/catkin_ws/labs_ws/src/lab3/data/', act_dir);
 image_path = fullfile('/home/jhon/catkin_ws/labs_ws/src/lab3/document/images/', act_dir);
@@ -239,8 +239,8 @@ name_list = ["$\mathrm{\dot{q}_{1,des}}$", ...
 for i=1:6
     plot_name = strcat( name_list(i),' ($\mathrm{\frac{rad}{s}}$)');
     subplot(3, 2, i),
-    plot(time(t_start:t_step:t_end), dq_des(:, i), '-r', 'linewidth', 2), hold on, grid on, box on
-    plot(time(t_start:t_step:t_end), dq_med(:, i), '--k', 'linewidth', 2), hold on, grid on, box on
+    %plot(time(t_start:t_step:t_end), dq_des(:, i), '-r', 'linewidth', 2), hold on, grid on, box on
+    plot(time(t_start:t_step:t_end), dq_med(:, i), '-k', 'linewidth', 2), hold on, grid on, box on
     xlabel('time (s)', 'interpreter', 'latex')
     ylabel(plot_name, 'interpreter', 'latex')
     xticks(0:1:5)
@@ -251,10 +251,10 @@ for i=1:6
 end         
 
 % add legend
-Lgnd = legend({'desired', 'measured'}, 'interpreter', 'latex', 'Orientation','horizontal');
-Lgnd.FontSize = 12;
-Lgnd.Position(1) = 0.3;
-Lgnd.Position(2) = 0.95;
+%Lgnd = legend({'desired', 'measured'}, 'interpreter', 'latex', 'Orientation','horizontal');
+%Lgnd.FontSize = 12;
+%Lgnd.Position(1) = 0.3;
+%Lgnd.Position(2) = 0.95;
 
 % Save image
 file_name     = fullfile(image_path, 'joint_velocity');
@@ -277,8 +277,8 @@ name_list = ["$\mathrm{\ddot{q}_{1,des}}$", ...
 for i=1:6
     plot_name = strcat( name_list(i),' ($\mathrm{\frac{rad}{s^2}}$)');
     subplot(3, 2, i),
-    plot(time(t_start:t_step:t_end), ddq_des(:, i), '-r', 'linewidth', 2), hold on, grid on, box on
-    plot(time(t_start:t_step:t_end), ddq_med(:, i), '--k', 'linewidth', 2), hold on, grid on, box on
+    %plot(time(t_start:t_step:t_end), ddq_des(:, i), '-r', 'linewidth', 2), hold on, grid on, box on
+    plot(time(t_start:t_step:t_end), ddq_med(:, i), '-k', 'linewidth', 2), hold on, grid on, box on
     xlabel('time (s)', 'interpreter', 'latex')
     ylabel(plot_name, 'interpreter', 'latex')
     xticks(0:1:5)
@@ -289,10 +289,10 @@ for i=1:6
 end         
 
 % add legend
-Lgnd = legend({'desired', 'measured'}, 'interpreter', 'latex', 'Orientation','horizontal');
-Lgnd.FontSize = 12;
-Lgnd.Position(1) = 0.3;
-Lgnd.Position(2) = 0.95;
+%Lgnd = legend({'desired', 'measured'}, 'interpreter', 'latex', 'Orientation','horizontal');
+%Lgnd.FontSize = 12;
+%Lgnd.Position(1) = 0.3;
+%Lgnd.Position(2) = 0.95;
 
 
 % Save image
