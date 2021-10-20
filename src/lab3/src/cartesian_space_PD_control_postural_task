@@ -4,8 +4,8 @@
 # 	Alumno  :   Jhon Charaja
 #   Lab     :   3 (Task space motion control)
 #   Activity:   1.5
-# 	Info	:	cartesian PD + sinusoidal reference in x axis +
-#               postural task                               
+# 	Info	:	cartesian PD + null space projection + 
+#               sinusoidal reference in x axis                           
 # ===============================================================
 
 # =============
