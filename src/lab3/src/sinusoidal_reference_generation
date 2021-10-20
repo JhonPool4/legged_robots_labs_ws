@@ -3,7 +3,7 @@
 #	Curso   :   Legged robots
 # 	Alumno  :   Jhon Charaja
 #   Lab     :   3 (Task space motion control)
-#   Activity:   3.1
+#   Activity:   1.1
 # 	Info	:	sinusoidal reference in x axis
 # ===============================================================
 
@@ -21,7 +21,7 @@ from labpythonlib.lab_functions import *
 # directory to save data
 origin 	= '../data/'
 matlab = "../document/images/"
-suffix 	= 'act_3.1'
+suffix 	= 'act_1.1'
 pwd = os.path.dirname(os.path.realpath(__file__))
 data_folder = os.path.join(pwd, origin, suffix)
 matlab_folder = os.path.join(pwd, matlab, suffix)
@@ -122,6 +122,8 @@ sine_duration = 4.0 # [sec]
 
 while not rospy.is_shutdown():
     # desired cartesian trajectory
+    p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, sine_duration, t)
+    """    
     if t<=sine_duration:
         # x axis 
         p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, t)
@@ -129,7 +131,7 @@ while not rospy.is_shutdown():
     else:
         # x axis
         p_des[0], dp_des[0], ddp_des[0] = step_reference_generator(0, last_x_des)
-
+    """
     # jacobian: position xyz [3x6]
     J = ur5_robot.jacobian(q_des)[0:3, 0:6] 
     # jacobian: dampend pseudo-inverse [6x3] 
