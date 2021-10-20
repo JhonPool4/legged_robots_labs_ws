@@ -64,7 +64,7 @@ df.to_csv(path, index=False)
 #   Configuration of node
 # =========================
 # create a node: 
-rospy.init_node("cartesian_PD_control_postural_task")
+rospy.init_node("cartesian_space_PD_control_postural_task")
 # public in topic /joint_states	to send joint data	
 pub = rospy.Publisher('joint_states', JointState, queue_size=1000)
 # loop rate (in Hz)
@@ -166,8 +166,8 @@ while not rospy.is_shutdown():
 
     # postural task: control term
     tau_0 = Kq.dot(q0-q_med) - Dq.dot(dq_med)
-    N = np.eye(ndof) - J.T.dot(J_inv.T)
-
+    N = np.eye(ndof) - J_inv.dot(J)
+    
     # PD control method (cartesian space)
     tau_PD = J.T.dot( np.multiply(kp, e) + np.multiply(kd, de) )
     # control signal: PD control + null space control
