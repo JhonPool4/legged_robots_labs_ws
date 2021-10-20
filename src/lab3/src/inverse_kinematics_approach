@@ -21,7 +21,7 @@ from labpythonlib.lab_functions import *
 # directory to save data
 origin 	= '../data/'
 matlab = "../document/images/"
-suffix 	= 'act_3.3'
+suffix 	= 'act_1.3'
 pwd = os.path.dirname(os.path.realpath(__file__))
 data_folder = os.path.join(pwd, origin, suffix)
 matlab_folder = os.path.join(pwd, matlab, suffix)
@@ -64,14 +64,11 @@ df.to_csv(path, index=False)
 # =========================
 # create a node: 
 rospy.init_node("inverse_kinematics_approach")
-
 # public in topic /joint_states	to send joint data	
 pub = rospy.Publisher('joint_states', JointState, queue_size=1000)
-
 # loop rate (in Hz)
-rate 	= rospy.Rate(1000)		# 100 [Hz]
-dt 		= 1e-3					# 10  [ms]
-
+rate 	= rospy.Rate(1000)		# 1000 [Hz]
+dt 		= 1e-3					# 1  [ms]
 # object(message) type JointState
 jstate = JointState()
 
@@ -149,13 +146,7 @@ sine_duration = 4.0    # [sec]
 
 while not rospy.is_shutdown():
     # desired cartesian trajectory
-    if t<=sine_duration:
-        # x axis 
-        p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, t)
-        last_x_des = p_des[0]  
-    else:
-        # x axis
-        p_des[0], dp_des[0], ddp_des[0] = step_reference_generator(0, last_x_des)
+    p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, sine_duration, t)
 
     # jacobian: position xyz [3x6]
     J = ur5_robot.jacobian(q_des)[0:3, 0:6] 
@@ -175,12 +166,13 @@ while not rospy.is_shutdown():
 
     # compute inertia matrix
     M = ur5_robot.get_M()
-    # compute gravitational effects vector
-    g = ur5_robot.get_g()
 
-    # PD control method + gravity compensation
+    # update value of kd with critical damping approach
+    kd = 2*np.sqrt(np.multiply(kp, M.diagonal()))
+
+    # PD control method + feed-forward terms
     tau_ff = M.dot(ddq_des)
-    tau = tau_ff + np.multiply(kp, e) + np.multiply(kd, de) + g
+    tau = tau_ff + np.multiply(kp, e) + np.multiply(kd, de)
     
     # send control signal
     ur5_robot.send_control_command(tau)
