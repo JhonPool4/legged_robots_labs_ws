@@ -122,7 +122,7 @@ step_start = 2.0 # [sec]
 
 while not rospy.is_shutdown():
     # desired cartesian trajectory
-    p_des[2], dp_des[2], ddp_des[2] = step_reference_generator(p0[0], 0.1, step_start, t)
+    p_des[2], dp_des[2], ddp_des[2] = step_reference_generator(p0[2], 0.1, step_start, t)
 
     # jacobian: position xyz [3x6]
     J = ur5_robot.jacobian(q_des)[0:3, 0:6] 
