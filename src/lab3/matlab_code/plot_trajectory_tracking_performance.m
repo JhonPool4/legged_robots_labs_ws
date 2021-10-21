@@ -5,9 +5,9 @@
 %   Activity:   >= 1.3 
 % 	Info	:	trajectory tracking performances
 % ===============================================================
-clc, close all;
+clc, close all, clear all;
 
-act_dir  = 'act_1.6/'; % change with the activity name
+act_dir  = 'act_1.7/'; % change with the activity name
 file_name = 'data';
 file_path = fullfile('/home/jhon/catkin_ws/labs_ws/src/lab3/data/', act_dir);
 image_path = fullfile('/home/jhon/catkin_ws/labs_ws/src/lab3/document/images/', act_dir);
