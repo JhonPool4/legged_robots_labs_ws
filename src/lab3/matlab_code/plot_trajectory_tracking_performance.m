@@ -7,7 +7,7 @@
 % ===============================================================
 clc, close all, clear all;
 
-act_dir  = 'act_2.2/'; % change with the activity name
+act_dir  = 'act_2.3/'; % change with the activity name
 file_name = 'data';
 file_path = fullfile('/home/jhon/catkin_ws/labs_ws/src/lab3/data/', act_dir);
 image_path = fullfile('/home/jhon/catkin_ws/labs_ws/src/lab3/document/images/', act_dir);
@@ -100,7 +100,9 @@ ddp_med = [ data.ddx_med(t_start:t_step:t_end), ...
             data.ddy_med(t_start:t_step:t_end), ...
             data.ddz_med(t_start:t_step:t_end)];                  
 
-
+% error: cartesian position
+e = p_des - p_med;
+norm_e = [norm(100*e(:,1)), norm(100*e(:,2)), norm(100*e(:,3))]/length(time);
 %% cartesian position
 clc, close all;
 

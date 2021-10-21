@@ -1,5 +1,6 @@
 \graphicspath{{images/act_2.1/}}
 \subsection{Cartesian space inverse dynamics}
+\label{subsec:cartesian_inverse_dynamics}
 The objective of this activity is to control movement of the ur5 robot end-effector so that it follows the Cartesian sinusoidal reference trajectory of activity \ref{subsec:generate_sinusoidal_reference}. The simulation starts with initial joint configuration $\mathbf{q_0}=\begin{bmatrix} 0.0 & -1.0 & 1.0 & 0.5 & 0.0 & 0.5 \end{bmatrix}$ rad and end-effector $\mathbf{p_0}=\begin{bmatrix}  0.577 &   0.192 &   0.364 \end{bmatrix}$~m. Likewise, the Cartesian sinusoidal reference trajectory starts at $\mathbf{p_0}$. Motion control is made up of two approaches: Cartesian inverse dynamics and projection of the null space. In this sense, Cartesian inverse dynamics focuses on reducing end-effector position error and the projection of null space maintains the articular position close to $\mathbf{q_0}$. Finally, control law can be computed as 
 \begin{equation}
 	\boldsymbol{\tau}

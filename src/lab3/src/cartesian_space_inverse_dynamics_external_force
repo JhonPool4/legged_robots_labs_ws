@@ -1,0 +1,225 @@
+#!/usr/bin/env python3
+# ===============================================================
+#	Curso   :   Legged robots
+# 	Alumno  :   Jhon Charaja
+#   Lab     :   3 (Task space motion control)
+#   Activity:   2.1
+# 	Info	:	cartesian inverse dynamics + 
+#               null space projection +
+#               sinusoidal reference in x axis
+#               external force at z-axis                                  
+# ===============================================================
+
+# =============
+#   Libraries
+# ============= 
+import rospy
+import pandas as pd
+from sensor_msgs.msg import JointState
+from labpythonlib.lab_functions import *
+
+# =============
+#   Save data
+# =============
+# directory to save data
+origin 	= '../data/'
+matlab = "../document/images/"
+suffix 	= 'act_2.3'
+pwd = os.path.dirname(os.path.realpath(__file__))
+data_folder = os.path.join(pwd, origin, suffix)
+matlab_folder = os.path.join(pwd, matlab, suffix)
+
+# creates folder if it does not exist
+if not os.path.exists(data_folder):
+    os.makedirs(data_folder)
+# creates folder if it does not exist
+if not os.path.exists(matlab_folder):
+    os.makedirs(matlab_folder)
+
+column_names = [
+    't',
+
+    'x_med', 'y_med', 'z_med',
+    'dx_med', 'dy_med', 'dz_med',
+    'ddx_med', 'ddy_med', 'ddz_med',
+
+    'q1_med', 'q2_med', 'q3_med', 'q4_med', 'q5_med', 'q6_med',
+    'dq1_med', 'dq2_med', 'dq3_med', 'dq4_med', 'dq5_med', 'dq6_med',
+    'ddq1_med', 'ddq2_med', 'ddq3_med', 'ddq4_med', 'ddq5_med', 'ddq6_med', 
+
+    'x_des', 'y_des', 'z_des',
+    'dx_des', 'dy_des', 'dz_des',
+    'ddx_des', 'ddy_des', 'ddz_des',
+
+    'q1_des', 'q2_des', 'q3_des', 'q4_des', 'q5_des', 'q6_des',
+    'dq1_des', 'dq2_des', 'dq3_des', 'dq4_des', 'dq5_des', 'dq6_des',
+    'ddq1_des', 'ddq2_des', 'ddq3_des', 'ddq4_des', 'ddq5_des', 'ddq6_des' 
+]
+
+df = pd.DataFrame(columns=column_names)
+file_name = 'data'
+path = os.path.join(data_folder, file_name)
+
+df.to_csv(path, index=False) 
+
+# =========================
+#   Configuration of node
+# =========================
+# create a node: 
+rospy.init_node("cartesian_space_inverse_dynamics")
+# public in topic /joint_states	to send joint data	
+pub = rospy.Publisher('joint_states', JointState, queue_size=1000)
+# loop rate (in Hz)
+rate 	= rospy.Rate(1000)		# 1000 [Hz]
+dt 		= 1e-3					# 1  [ms]
+# object(message) type JointState
+jstate = JointState()
+
+# ==========================================
+#   Set initial joint configuration of UR5
+# ==========================================
+# initial configuration: position, velocity and acceleration 
+q0 =   np.array([ 0.0, -1.0, 1.0, 0.5, 0.0, 0.5])
+dq0 =  np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+ddq0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+
+# desired trajectory: position, velocity and acceleration
+q_des =   np.array([ 0.0, -1.0, 1.0, 0.5, 0.0, 0.5])
+dq_des =  np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+ddq_des = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+
+# measured trajectory: position, velocity and acceleration
+q_med =   np.array([ 0.0, -1.0, 1.0, 0.5, 0.0, 0.5])
+dq_med =  np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+ddq_med = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+
+# ===========================
+#   UR5 robot configuration
+# ===========================
+# joints name of UR5 robot
+jnames = ['shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint','wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint']
+# path of labs_ur5.urdf
+urdf_path = os.path.join(pwd, "../../ur5_description/urdf/labs_ur5.urdf")
+# the class robot load labs_ur5.urdf
+ur5_robot = Robot(q0, dq0, dt, urdf_path)
+# number of degress of freedom
+ndof = ur5_robot.ndof
+
+# create inertia matrix 
+M = np.zeros([ndof,ndof])
+# create nonlinear effects vector
+b = np.zeros(ndof)
+# create gravity vector
+g = np.zeros(ndof)
+
+# ==============================================
+#   set initial cartesian configuration of UR5
+# ==============================================
+# initial cartesian configuration: position, velocity and acceleration
+p0 = ur5_robot.get_ee_position()
+dp0 = np.array([0.0, 0.0, 0.0])
+ddp0 = np.array([0.0, 0.0, 0.0])
+
+# desired cartesian trajectory: position, velocity and acceleration
+p_des = copy(p0)
+dp_des = np.array([0.0, 0.0, 0.0])
+ddp_des = np.array([0.0, 0.0, 0.0])
+
+# measured cartesian trajectory: position, velocity and acceleration
+p_med = copy(p0)
+dp_med = np.array([0.0, 0.0, 0.0])
+ddp_med = np.array([0.0, 0.0, 0.0])
+
+# ===============================
+#   PD controller configuration
+# ===============================
+# proportional gain
+kp = np.array([1000, 1000, 1000])   # N/m
+# derivative gain   
+kd = np.array([300, 300, 300])      # N.s/m
+# control vector
+tau_PD = np.zeros(ndof)    
+
+# postural task: gains
+Kq = 50*np.eye(ndof)
+Dq = 10*np.eye(ndof)
+# postural task: control term
+tau_0 = np.zeros(ndof)
+
+#===============
+#   Simulation
+#===============
+t = 0.0             # [sec] 
+sim_duration = 5.0  # [sec]
+sine_duration = 4.0    # [sec]
+external_force_start = 1 # [sec]
+external_force = np.array([0, 0, 0]) # [N]
+
+while not rospy.is_shutdown():
+    # desired cartesian trajectory
+    p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, sine_duration, t)
+
+    # jacobian: position xyz [3x6]
+    J = ur5_robot.jacobian(q_med)[0:3, 0:6]  
+    # jacobian: damped pseudo-inverse [6x3]
+    J_inv = ur5_robot.jacobian_damped_pinv(J)   
+    # jacobian: time-derivative [3x6]
+    dJ = ur5_robot.jacobian_time_derivative(q_med, dq_med)[0:3, 0:6]
+
+    # external force
+    if t>=external_force_start:
+        external_force = np.array([0, 0, 200]) # [N]
+    
+
+    # error: position and velocity
+    e 	=  p_des - p_med
+    de 	=  dp_des - dp_med    
+
+    # dynamics: inertia matrix
+    M = ur5_robot.get_M()
+    M_x = np.linalg.inv(J.dot(np.linalg.inv(M).dot(J.T)))
+    # dynamics: nonlinear effects vector
+    b = ur5_robot.get_b()
+    b_x = J_inv.T.dot(b) - M_x.dot(dJ.dot(dq_med))
+
+    # control signal: null space projection
+    tau_0 = Kq.dot(q0-q_med) - Dq.dot(dq_med)
+    N = np.eye(ndof) - J_inv.dot(J)
+    # control signal: Cartesian inverse dyanmics
+    F_d = ddp_des + np.multiply(kp, e) + np.multiply(kd, de)
+    tau_PD = J.T.dot( M_x.dot(F_d) + b_x ) 
+    # Cartesian inverse dyanmics + null space projection + external force
+    tau = tau_PD + N.dot(tau_0) + J.T.dot(external_force)
+    
+    # send control signal
+    ur5_robot.send_control_command(tau)
+    # update states
+    q_med, dq_med, ddq_med = ur5_robot.read_joint_position_velocity_acceleration()
+    p_med, dp_med, ddp_med = ur5_robot.read_cartesian_position_velocity_acceleration()
+
+    # publish message
+    jstate.header.stamp = rospy.Time.now()
+    jstate.name 		= jnames			# Joints position name
+    jstate.position 	= q_med
+    jstate.velocity 	= dq_med
+    pub.publish(jstate)
+
+    # update time
+    t = t + dt
+
+
+    # Append data
+    row =   tl(np.array([t])) + \
+            tl(p_med) + tl(dp_med) + tl(ddp_med) +\
+            tl(q_med) + tl(dq_med) + tl(ddq_med) +\
+            tl(p_des) + tl(dp_des) + tl(ddp_des) + \
+            tl(q_des) + tl(dq_des) + tl(ddq_des)
+    # Fix for redimensionality
+    df_row = pd.DataFrame.from_dict(dict(zip(column_names, tl(np.expand_dims(np.array(row), axis = 1)))))
+    df.append(df_row, sort = False).to_csv(path, index=False, mode = 'a', header=False)     
+    
+    # stop simulation
+    if t>=sim_duration:
+        print("stopping rviz ...")
+        break
+    rate.sleep()
