@@ -1,8 +1,0 @@
-\BOOKMARK [1][-]{section.1}{Decentralized task space control}{}% 1
-\BOOKMARK [2][-]{subsection.1.1}{Generate sinusoidal reference}{section.1}% 2
-\BOOKMARK [2][-]{subsection.1.2}{Generate step reference}{section.1}% 3
-\BOOKMARK [2][-]{subsection.1.3}{Inverse kinematics approach}{section.1}% 4
-\BOOKMARK [2][-]{subsection.1.4}{Cartesian space PD control}{section.1}% 5
-\BOOKMARK [2][-]{subsection.1.5}{Cartesian space PD control - postural task}{section.1}% 6
-\BOOKMARK [2][-]{subsection.1.6}{Cartesian space PD control + gravity compensation}{section.1}% 7
-\BOOKMARK [2][-]{subsection.1.7}{Cartesian PD control + gravity compensation + feed-forward term}{section.1}% 8
