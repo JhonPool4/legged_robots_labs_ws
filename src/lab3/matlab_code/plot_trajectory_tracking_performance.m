@@ -201,8 +201,8 @@ name_list = ["$\mathrm{q_{1,des}}$", ...
 for i=1:6
     plot_name = strcat( name_list(i),' ($\mathrm{rad}$)');
     subplot(3, 2, i),
-    plot(time(t_start:t_step:t_end), q_des(:, i), '-r', 'linewidth', 2), hold on, grid on, box on
-    plot(time(t_start:t_step:t_end), q_med(:, i), '--k', 'linewidth', 2), hold on, grid on, box on
+    %plot(time(t_start:t_step:t_end), q_des(:, i), '-r', 'linewidth', 2), hold on, grid on, box on
+    plot(time(t_start:t_step:t_end), q_med(:, i), '-k', 'linewidth', 2), hold on, grid on, box on
     xlabel('time (s)', 'interpreter', 'latex')
     ylabel(plot_name, 'interpreter', 'latex')
     xticks(0:1:5)
@@ -213,10 +213,10 @@ for i=1:6
 end         
 
 % add legend
-Lgnd = legend({'desired', 'measured'}, 'interpreter', 'latex', 'Orientation','horizontal');
-Lgnd.FontSize = 12;
-Lgnd.Position(1) = 0.3;
-Lgnd.Position(2) = 0.95;
+%Lgnd = legend({'desired', 'measured'}, 'interpreter', 'latex', 'Orientation','horizontal');
+%Lgnd.FontSize = 12;
+%Lgnd.Position(1) = 0.3;
+%Lgnd.Position(2) = 0.95;
 
 % Save image
 file_name     = fullfile(image_path, 'joint_position');

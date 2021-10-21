@@ -202,7 +202,7 @@ for i=1:6
     plot_name = strcat( name_list(i),' ($\mathrm{rad}$)');
     subplot(3, 2, i),
     %plot(time(t_start:t_step:t_end), q_des(:, i), '-r', 'linewidth', 2), hold on, grid on, box on
-    plot(time(t_start:t_step:t_end), q_med(:, i), '--k', 'linewidth', 2), hold on, grid on, box on
+    plot(time(t_start:t_step:t_end), q_med(:, i), '-k', 'linewidth', 2), hold on, grid on, box on
     xlabel('time (s)', 'interpreter', 'latex')
     ylabel(plot_name, 'interpreter', 'latex')
     xticks(0:0.3:0.9)
