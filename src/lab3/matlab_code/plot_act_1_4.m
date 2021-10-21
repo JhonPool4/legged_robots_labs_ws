@@ -2,7 +2,7 @@
 %	Curso   :   Legged robots
 % 	Alumno  :   Jhon Charaja
 %   Lab     :   3 (Task space motion control)
-%   Activity:   >= 3.3 
+%   Activity:   1.4 
 % 	Info	:	trajectory tracking performances
 % ===============================================================
 clc, close all;

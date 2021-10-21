@@ -7,7 +7,7 @@
 % ===============================================================
 clc, close all, clear all;
 
-act_dir  = 'act_2.1/'; % change with the activity name
+act_dir  = 'act_2.2/'; % change with the activity name
 file_name = 'data';
 file_path = fullfile('/home/jhon/catkin_ws/labs_ws/src/lab3/data/', act_dir);
 image_path = fullfile('/home/jhon/catkin_ws/labs_ws/src/lab3/document/images/', act_dir);
