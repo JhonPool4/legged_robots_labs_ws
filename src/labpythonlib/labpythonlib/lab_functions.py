@@ -72,6 +72,24 @@ def tl(array):
     """
     return array.tolist()    
 
+def rot2axisangle(R):
+    R32 = R[2,1]
+    R23 = R[1,2]
+    R13 = R[0,2]
+    R31 = R[2,0]
+    R21 = R[1,0]
+    R12 = R[0,1]
+    tr  = np.diag(R).sum()
+    # angle
+    dth = np.arctan2(np.sqrt( np.power(R32-R23,2)+np.power(R13-R31,2)+np.power(R21-R12,2) ),tr-1)
+    # axis
+    rx = (R32-R23)/(2*np.sin(dth))
+    ry = (R13-R31)/(2*np.sin(dth))
+    rz = (R21-R12)/(2*np.sin(dth))
+    r = np.array([rx, ry, rz]) 
+    return dth, r
+
+
 class Robot(object):
     """
     Info: Class to load the .urdf of a robot. For thism Pinocchio library is used
@@ -103,8 +121,10 @@ class Robot(object):
         self.ddp = np.zeros(3)
         # end-effector: orientation
         self.R = np.zeros([3,3])
+        self.w = np.zeros(3)
         # initial configuration: position (p) and orientation (R)
         self.p, self.R = self.forward_kinematics(self.q)
+        self.w = self.twist(self.q, self.dq)[3:6]
         # initial configuration: dynamic model
         self.M = pin.crba(self.robot.model, self.robot.data, self.q)
         self.b = pin.rnea(self.robot.model, self.robot.data, self.q, self.dq, self.z)
@@ -178,6 +198,10 @@ class Robot(object):
         """
         J_damped_inv =  np.dot(J.T, np.linalg.inv(np.dot(J, J.T) + lambda_*np.eye(3)))
         return J_damped_inv
+    
+    def twist(self, q0, dq0):
+        J = self.jacobian(q0)
+        return J.dot(dq0)
 
     def send_control_command(self, u):
         """
@@ -201,7 +225,9 @@ class Robot(object):
         self.p, self.R = self.forward_kinematics(self.q)
         self.dp = np.dot(J, self.dq)
         self.ddp = np.dot(J, self.ddq) + np.dot(dJ, self.dq)
-
+        # update end-effector: angular velocity
+        self.w = self.twist(self.q, self.dq)[3:6]
+        
     def inverse_kinematics_position(self, x_des, q0):
         """
         @info: computes inverse kinematics with the method of damped pseudo-inverse.
@@ -240,11 +266,14 @@ class Robot(object):
     def read_cartesian_position_velocity_acceleration(self):
         return self.p, self.dp, self.ddp
 
-    def get_ee_position(self):
+    def read_ee_position(self):
         return self.p
-    
-    def get_ee_orientation(self):
+
+    def read_ee_orientation(self):
         return self.R
+
+    def read_ee_angular_velocity(self):        
+        return self.w
 
     def get_M(self):
         return self.M
@@ -254,6 +283,12 @@ class Robot(object):
     
     def get_g(self):
         return self.g
+    # deprecated
+    def get_ee_orientation(self):
+        return self.R
+    # deprecated        
+    def get_ee_position(self):
+        return self.p
 
 
 
