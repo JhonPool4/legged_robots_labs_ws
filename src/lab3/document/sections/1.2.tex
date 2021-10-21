@@ -6,15 +6,15 @@ The objective of this activity is to generate a step reference trajectory on the
 \begin{lstlisting}[language=Python,caption=Function to generate a step reference trajectory., label={lst:step_reference_generator}]
 def step_reference_generator(q0, a, t_step, t):
     """
-    Info: generate a constant reference.
+    @info: generate a constant reference.
 
-    Inputs:
+    @inputs:
     ------
         - q0: initial joint/cartesian position
         - a: constant reference
         - t_step: start step [sec]
         - t: simulation time [sec]
-    Outputs:
+    @outputs:
     -------
         - q, dq, ddq: joint/carteisan position, velocity and acceleration
     """

@@ -5,13 +5,13 @@ The objective of this activity is to control movement of the ur5 robot end-effec
 \begin{equation}
 	\boldsymbol{\tau}
 	= \mathbf{J^T} (\mathbf{K_p e} + \mathbf{K_d \dot{e}}),
-	\label{eq:cartesian_PD_control}
+	\label{eq:cartesian_PD}
 \end{equation}
 \noindent where $\mathbf{J}$ is jacobian matrix, $\mathbf{e}=\mathbf{p_{des} - p}$ is end-effector position error, and $\mathbf{K_p, K_d}$ are the proportional and derivative gains respectively. \vspace{.5cm}
 
-The Algorithm \ref{lst:cartesian_PD_control} control the movements of ur5 robot end-effector to track the Cartesian sinusoidal reference trajectory of activity~\ref{subsec:generate_sinusoidal_reference}. In this file, the PD control method is configured with ${K_{p}}=1000$ $\mathrm{\frac{N}{m}}$ and $K_{d}= 300$ $\mathrm{\frac{N.s}{m}}$. On one hand, Figure \ref{fig:act_1.4_ee_position} shows that trajectory tracking performance at the Cartesian space is poor because there are position, velocity and acceleration error. The constant position error in $z$-axis could be reduced by adding gravity terms on control law \eqref{eq:cartesian_PD_control}. On the other hand, Figure \ref{fig:act_1.4_joint_position} shows that angular trajectory of each joint with a PD at Cartesian space is different from angular trajectory obtained with a PD at joint space in activity \ref{subsec:inverse_kinematics_approach}. This is because the control law focuses on reducing the Cartesian position error of the end effector rather than position error of each joint. In this case, redundancy problem causes system to become unstable after $0.8$ seconds of simulation.  \vspace{.5cm}
+The Algorithm \ref{lst:cartesian_PD} control the movements of ur5 robot end-effector to track the Cartesian sinusoidal reference trajectory of activity~\ref{subsec:generate_sinusoidal_reference}. In this file, the Cartesian PD control method is configured with ${K_{p}}=1000$ $\mathrm{\frac{N}{m}}$ and $K_{d}= 300$ $\mathrm{\frac{N.s}{m}}$. On one hand, Figure \ref{fig:act_1.4_ee_position} shows that trajectory tracking performance at the Cartesian space is poor with mean norm error at each axis ($||e_x||, ||e_y||, ||e_z||$) of ($0.1853$, $0.056$, $0.107$) cm respectively. The constant position error in $z$-axis could be reduced by adding gravity terms on control law \eqref{eq:cartesian_PD}; likewise, add feed-forward terms on control law \eqref{eq:cartesian_PD} will reduce position error in $x$- and $y$-axis. On the other hand, Figure \ref{fig:act_1.4_joint_position} shows that angular trajectory of each joint with Cartesian PD control method is different from angular trajectory obtained with articular PD control method in activity \ref{subsec:inverse_kinematics_approach}. This is because the control law focuses on reducing the Cartesian position error of the end-effector rather than position error of each joint. In this case, redundancy problem causes system to become unstable after $0.8$ seconds of simulation.  \vspace{.5cm}
 
-\begin{lstlisting}[language=Python,caption=Move the ur5 robot end-effector so that it follows the Cartesian sinusoidal reference trajectory of activity \ref{subsec:generate_sinusoidal_reference}., label={lst:cartesian_PD_control}]
+\begin{lstlisting}[language=Python,caption={Move the ur5 robot end-effector using the Cartesian proportional-derivative control method, \eqref{eq:cartesian_PD}, so that it follows the Cartesian sinusoidal reference trajectory of activity \ref{subsec:generate_sinusoidal_reference}.}, label={lst:cartesian_PD}]
 # =========================
 #   Configuration of node
 # =========================
@@ -114,7 +114,7 @@ while not rospy.is_shutdown():
     # send control signal
     ur5_robot.send_control_command(tau)
     # update states
-    q_med, dq_med, ddq_med = ur5_robot.read_joint_position_velocity_acceleration()
+    q_med,dq_med,ddq_med = ur5_robot.read_joint_position_velocity_acceleration()
     p_med, dp_med, ddp_med = ur5_robot.read_cartesian_position_velocity_acceleration()
 
     # publish message
@@ -123,10 +123,8 @@ while not rospy.is_shutdown():
     jstate.position 	= q_med
     jstate.velocity 	= dq_med
     pub.publish(jstate)
-
     # update time
     t = t + dt
-    
     # stop simulation
     if t>=0.8:
         print("stopping rviz ...")
@@ -134,8 +132,8 @@ while not rospy.is_shutdown():
     rate.sleep()
 \end{lstlisting}
 
-\vspace*{0cm}
-\begin{figure}[H]
+%\vspace*{0cm}
+\begin{figure}%[H]
 	\centering
 	\subfloat[]{
 	\includegraphics{ee_position.eps}
@@ -148,13 +146,13 @@ while not rospy.is_shutdown():
 	\subfloat[]{
 	\includegraphics{ee_acceleration.eps}
 	}		
-	\caption{Trajectory tracking performances of the control method \eqref{eq:cartesian_PD_control} with  ${K_{p}}=1000$ $\mathrm{\frac{N}{m}}$ and $K_{d}= 300$ $\mathrm{\frac{N.s}{m}}$: (a) position, (b) velocity and (c) acceleration.}
+	\caption{Cartesian trajectory tracking performances using Cartesian proportional-derivative control method, \eqref{eq:cartesian_PD}, with  ${K_{p}}=1000$ $\mathrm{\frac{N}{m}}$ and $K_{d}= 300$ $\mathrm{\frac{N.s}{m}}$: (a) position, (b) velocity and (c) acceleration.}
 	\label{fig:act_1.4_ee_position}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics{joint_position.eps}	
-    \caption{Angular position of each joint of UR5 robot with Algorithm \ref{lst:cartesian_PD_control}.}
+    \caption{Angular position of each joint of UR5 robot with Algorithm \ref{lst:cartesian_PD}.}
     \label{fig:act_1.4_joint_position}
 \end{figure}

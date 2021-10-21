@@ -5,11 +5,11 @@ The objective of this activity is to control movement of the ur5 robot end-effec
 \begin{equation}
 	\boldsymbol{\tau}
 	=\mathbf{M}\mathbf{\ddot{q}_{des}} + \mathbf{K_p e} + \mathbf{K_d \dot{e}},
-	\label{eq:pd_critical_damping}
+	\label{eq:articular_PD}
 \end{equation}
-\noindent where $\mathbf{M}$ represent inertia matrix, $\mathbf{{q}_{des}}$ is desired joint trajectory, $\mathbf{e}=\mathbf{q_{des} - q}$ is error, and $\mathbf{K_p, K_d}$ are the proportional and derivative gains respectively. \vspace{.5cm}
+\noindent where $\mathbf{M}$ represent inertia matrix, $\mathbf{{q}_{des}}$ is desired joint trajectory, $\mathbf{e}=\mathbf{q_{des} - q}$ is position error, and $\mathbf{K_p, K_d}$ are the proportional and derivative gains respectively. \vspace{.5cm}
 
-\begin{lstlisting}[language=Python,caption=Function to compute inverse kinematics with jacobian damped psedo-inverse method., label={lst:inverse_kinematics}]
+\begin{lstlisting}[language=Python,caption={Function to compute inverse kinematics with jacobian damped psedo-inverse method.}, label={lst:inverse_kinematics}]
 def inverse_kinematics_position(self, x_des, q0):
     """
     @info: computes inverse kinematics with jacobian damped pseudo-inverse.
@@ -43,9 +43,9 @@ def inverse_kinematics_position(self, x_des, q0):
     return q_best 
 \end{lstlisting}
 
-The Algorithm \ref{lst:joint_PD_control_critical_damping} control the movements of ur5 robot end-effector to track the Cartesian sinusoidal reference trajectory of activity~\ref{subsec:generate_sinusoidal_reference}. In this file, the PD control method is configured with ${K_{p,i}}=600$ $\mathrm{\frac{N.m}{rad}}$ and $K_{d,i}= 2 \sqrt{k_{p,i} m_{i,i}} $ $\mathrm{\frac{N.m.s}{rad}}$. On one hand, Figure \ref{fig:act_1.3_ee_position} shows that trajectory tracking performance at the Cartesian space is poor because there are position, velocity and acceleration error. The constant position error in $<$-axis could be reduced by adding gravity terms on control law \eqref{eq:pd_critical_damping}. On the other hand, Figure \ref{fig:act_1.3_joint_position} shows that trajectory tracking performance at joint space is poor because there are position error in all joints. The constant joint position error could be reduced by adding gravity terms on control law \eqref{eq:pd_critical_damping}. The simulation was stopped after $0.8$ seconds due to stability issues. 
+The Algorithm \ref{lst:articular_PD} control the movements of ur5 robot end-effector to track the Cartesian sinusoidal reference trajectory of activity~\ref{subsec:generate_sinusoidal_reference}. In this file, the articular PD control method is configured with ${K_{p}}=600$ $\mathrm{\frac{N.m}{rad}}$ and $K_{d}= 30$ $\mathrm{\frac{N.m.s}{rad}}$. On one hand, Figure \ref{fig:act_1.3_ee_position} shows that trajectory tracking performance at the Cartesian space is poor with mean norm error at each axis ($||e_x||, ||e_y||, ||e_z||$) of ($0.0811$, $0.0176$, $0.062$) cm respectively. The constant position error in $z$-axis could be reduced by adding gravity terms on control law \eqref{eq:articular_PD}. On the other hand, Figure \ref{fig:act_1.3_joint_position} shows that trajectory tracking performance at joint space is poor because there are position error in all joints. The constant joint position error could be reduced by adding gravity terms on control law \eqref{eq:articular_PD}. The simulation was stopped after $0.8$ seconds due to stability issues. 
 
-\begin{lstlisting}[language=Python,caption=Move the ur5 robot end-effector so that it follows the Cartesian sinusoidal reference trajectory of activity \ref{subsec:generate_sinusoidal_reference}., label={lst:joint_PD_control_critical_damping}]
+\begin{lstlisting}[language=Python,caption={Move the ur5 robot end-effector using a articular proportional-derivative control method, \eqref{eq:articular_PD}, and inverse kinematics, Algorithm \ref{lst:inverse_kinematics}, to compute joint referece points from Cartesian sinusoidal reference trajectory of activity \ref{subsec:generate_sinusoidal_reference}.}, label={lst:articular_PD}]
 # =========================
 #   Configuration of node
 # =========================
@@ -154,10 +154,7 @@ while not rospy.is_shutdown():
     # compute inertia matrix
     M = ur5_robot.get_M()
 
-    # update value of kd with critical damping approach
-    kd = 2*np.sqrt(np.multiply(kp, M.diagonal()))
-
-    # PD control method + feed-forward terms
+    # control law: PD + feed-forward term
     tau_ff = M.dot(ddq_des)
     tau = tau_ff + np.multiply(kp, e) + np.multiply(kd, de)
     
@@ -198,13 +195,13 @@ while not rospy.is_shutdown():
 	\subfloat[]{
 	\includegraphics{ee_acceleration.eps}
 	}		
-	\caption{Trajectory tracking performances of the control method \eqref{eq:pd_critical_damping} with  ${K_{p,i}}=600$ $\mathrm{\frac{N.m}{rad}}$ and $K_{d,i}= 2 \sqrt{k_{p,i} m_{i,i}} $ $\mathrm{\frac{N.m.s}{rad}}$: (a) position, (b) velocity and (c) acceleration.}
+	\caption{Cartesian trajectory tracking performances using  articular proportional-derivative control method, \eqref{eq:articular_PD}, with  ${K_{p}}=600$ $\mathrm{\frac{N.m}{rad}}$ and $K_{d}= 30$ $\mathrm{\frac{N.m.s}{rad}}$: (a) position, (b) velocity and (c) acceleration.}
 	\label{fig:act_1.3_ee_position}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics{joint_position.eps}
-    \caption{Angular position of each joint of UR5 robot with Algorithm \ref{lst:joint_PD_control_critical_damping}.}
+    \caption{Angular trajectory tracking performances using articular proportional-derivative control method, \eqref{eq:articular_PD}, with  ${K_{p}}=600$ $\mathrm{\frac{N.m}{rad}}$ and $K_{d}= 30$ $\mathrm{\frac{N.m.s}{rad}}$.}
     \label{fig:act_1.3_joint_position}
 \end{figure}

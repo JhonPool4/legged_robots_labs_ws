@@ -6,16 +6,16 @@ The objective of this activity is to generate a sinusoidal reference trajectory 
 \begin{lstlisting}[language=Python,caption=Function to generate a sinusoidal reference trajectory for some seconds and then change to a constant reference trajectory., label={lst:sine_reference_generator}]
 def sinusoidal_reference_generator(q0, a, f, t_change, t):
     """
-    Info: generates a sine signal.
+    @info: generates a sine signal.
 
-    Inputs: 
+    @inputs: 
     ------
         - q0: initial joint/cartesian position   [or rad or m]
         - a: amplitude [rad]
         - f: frecuency [hz]
         - t_change: time to make the change  [sec]
         - t: simulation time [sec]
-    Outputs:
+    @outputs:
     -------
         - q, dq, ddq: joint/carteisan position, velocity and acceleration
     """

@@ -1,20 +1,20 @@
 \graphicspath{{images/act_1.5/}}
 \subsection{Cartesian space PD control - postural task}
 \label{subsec:cartesian_PD_control_postural_task}
-The objective of this activity is to control movement of the ur5 robot end-effector so that it follows the Cartesian sinusoidal reference trajectory of activity \ref{subsec:generate_sinusoidal_reference}. The simulation starts with initial joint configuration $\mathbf{q_0}=\begin{bmatrix} 0.0 & -1.0 & 1.0 & 0.5 & 0.0 & 0.5 \end{bmatrix}$ rad and end-effector $\mathbf{p_0}=\begin{bmatrix}  0.577 &   0.192 &   0.364 \end{bmatrix}$~m. Likewise, the Cartesian sinusoidal reference trajectory starts at $\mathbf{p_0}$. Motion control is made up of two approaches: proportional-derivative at the Cartesian level and projection of the null space. In this sense, the PD control method contributes with the reduction of trajectory tracking error and the projection of null space maintains the articular position close to $\mathbf{q_0}$. Finally, control law can be computed as 
+The objective of this activity is to control movement of the ur5 robot end-effector so that it follows the Cartesian sinusoidal reference trajectory of activity \ref{subsec:generate_sinusoidal_reference}. The simulation starts with initial joint configuration $\mathbf{q_0}=\begin{bmatrix} 0.0 & -1.0 & 1.0 & 0.5 & 0.0 & 0.5 \end{bmatrix}$ rad and end-effector $\mathbf{p_0}=\begin{bmatrix}  0.577 &   0.192 &   0.364 \end{bmatrix}$~m. Likewise, the Cartesian sinusoidal reference trajectory starts at $\mathbf{p_0}$. Motion control is made up of two approaches: Cartesian proportional-derivative and projection of the null space. In this sense, Cartesian PD control method focuses on reducing end-effector position error and the projection of null space maintains the articular position close to $\mathbf{q_0}$. Finally, control law can be computed as 
 \begin{equation}
 	\boldsymbol{\tau}
 	= \mathbf{J^T} (\mathbf{K_p e} + \mathbf{K_d \dot{e}}) + \mathbf{N} \left(\mathbf{K_q(q_0-q) - D_q \dot{q}} \right),
-	\label{eq:cartesian_PD_control_null_space}
+	\label{eq:cartesian_PD_N}
 \end{equation}
 \begin{equation*}
 	\mathbf{N}=(\mathbf{I_{6 \times 6}} - \mathbf{J^{\#} J} ),
 \end{equation*}
 \noindent where $\mathbf{J}$ is jacobian matrix, $\mathbf{e}=\mathbf{p_{des} - p}$ is end-effector position error, $\mathbf{K_p, K_d}$ are the proportional and derivative gains respectively, $\mathbf{J^{\#}}$ is jacobian damped pseudo-inverse, $\mathbf{N}$ is the null space projection of $\mathbf{J^{\#}}$, and $\mathbf{K_q, D_q}$ are the proportional and derivative gains for null space projection. \vspace{.5cm}
 
-The Algorithm \ref{lst:cartesian_PD_control_postural_task} control the movements of ur5 robot end-effector to track the Cartesian sinusoidal reference trajectory of activity~\ref{subsec:generate_sinusoidal_reference}. In this file, the PD control method is configured with ${K_{p}}=1000$ $\mathrm{\frac{N}{m}}$ and $K_{d}= 300$ $\mathrm{\frac{N.s}{m}}$ and the null space projection is configured with ${K_{q}}=50$ $\mathrm{\frac{N.m}{rad}}$ and $K_{d}= 10$ $\mathrm{\frac{N.m.s}{rad}}$. On one hand, Figure \ref{fig:act_1.5_ee_position} shows that trajectory tracking performance at the Cartesian space is regular with mean norm error at each axis ($||e_x||, ||e_y||, ||e_z||$) of $0.045$, $0.013$, $0.080$ cm respectively. The constant position error in $z$-axis could be reduced by adding gravity terms on control law \eqref{eq:cartesian_PD_control}. On the other hand, Figure \ref{fig:act_1.5_joint_position} shows that angular trajectory of each joint with a PD at Cartesian space is different from angular trajectory obtained with a PD at joint space in activity \ref{subsec:inverse_kinematics_approach}. This is because the control law focuses on reducing the Cartesian position error of the end effector rather than position error of each joint. Finally, null space projection allows the smooth variation of the position of each joint, so the system remained stable for the entire simulation unlike activity \ref{subsec:cartesian_space_PD_control}. \vspace{.5cm}
+The Algorithm \ref{lst:cartesian_PD_N} control the movements of ur5 robot end-effector to track the Cartesian sinusoidal reference trajectory of activity~\ref{subsec:generate_sinusoidal_reference}. In this file, the control law \eqref{eq:cartesian_PD_N} is configured with ${K_{p}}=1000$ $\mathrm{\frac{N}{m}}$, $K_{d}= 300$ $\mathrm{\frac{N.s}{m}}$, ${K_{q}}=50$ $\mathrm{\frac{N.m}{rad}}$ and $K_{d}= 10$ $\mathrm{\frac{N.m.s}{rad}}$. On one hand, Figure \ref{fig:act_1.5_ee_position} shows that trajectory tracking performance at the Cartesian space is regular with mean norm error at each axis ($||e_x||, ||e_y||, ||e_z||$) of ($0.045$, $0.013$, $0.080$) cm respectively. The constant position error in $z$-axis could be reduced by adding gravity terms on control law \eqref{eq:cartesian_PD_N}; likewise, add feed-forward terms on control law \eqref{eq:cartesian_PD_N} will reduce position error in $x$- and $y$-axis. On the other hand, Figure \ref{fig:act_1.5_joint_position} shows that angular trajectory of each joint with Cartesian PD control method is different from angular trajectory obtained with articular PD control method in activity \ref{subsec:inverse_kinematics_approach}. This is because the control law focuses on reducing the Cartesian position error of the end effector rather than position error of each joint. Finally, null space projection allows the smooth variation of the position of each joint, so the system remained stable for the entire simulation unlike activity \ref{subsec:cartesian_space_PD_control}. \vspace{.5cm}
 
-\begin{lstlisting}[language=Python,caption=Move the ur5 robot end-effector using PD control method with null space projection to follows the Cartesian sinusoidal reference trajectory of activity \ref{subsec:generate_sinusoidal_reference}., label={lst:cartesian_PD_control_postural_task}]
+\begin{lstlisting}[language=Python,caption={Move the ur5 robot end-effector using the Cartesian proportional-derivative control method and null space projection, \eqref{eq:cartesian_PD_N} to follows the Cartesian sinusoidal reference of activity \ref{subsec:generate_sinusoidal_reference}.}, label={lst:cartesian_PD_N}]
 # =========================
 #   Configuration of node
 # =========================
@@ -151,8 +151,8 @@ while not rospy.is_shutdown():
     rate.sleep()
 \end{lstlisting}
 
-\vspace*{0cm}
-\begin{figure}[H]
+%\vspace*{0cm}
+\begin{figure}%[H]
 	\centering
 	\subfloat[]{
 	\includegraphics{ee_position.eps}
@@ -165,14 +165,14 @@ while not rospy.is_shutdown():
 	\subfloat[]{
 	\includegraphics{ee_acceleration.eps}
 	}		
-	\caption{Trajectory tracking performances of the control method \eqref{eq:cartesian_PD_control_null_space} with  ${K_{p}}=1000$ $\mathrm{\frac{N}{m}}$, $K_{d}= 300$ $\mathrm{\frac{N.s}{m}}$, ${K_{q}}=50$ $\mathrm{\frac{N.m}{rad}}$, $K_{d}= 10$ $\mathrm{\frac{N.m.s}{rad}}$: (a) position, (b) velocity and (c) acceleration.}
+	\caption{Cartesian trajectory tracking performances using Cartesian proportional-derivative control method and null space projection, \eqref{eq:cartesian_PD_N}, with  ${K_{p}}=1000$ $\mathrm{\frac{N}{m}}$, $K_{d}= 300$ $\mathrm{\frac{N.s}{m}}$, ${K_{q}}=50$ $\mathrm{\frac{N.m}{rad}}$, $K_{d}= 10$ $\mathrm{\frac{N.m.s}{rad}}$: (a) position, (b) velocity and (c) acceleration.}
 	\label{fig:act_1.5_ee_position}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics{joint_position.eps}	
-    \caption{Angular position of each joint of UR5 robot with Algorithm \ref{lst:cartesian_PD_control_postural_task}.}
+    \caption{Angular position of each joint of UR5 robot with Algorithm \ref{lst:cartesian_PD_N}.}
     \label{fig:act_1.5_joint_position}
 \end{figure}
 
