@@ -1,0 +1,124 @@
+% =========
+% packages		
+% =========
+\usepackage[utf8]{inputenc}
+\usepackage{geometry} % page size
+\usepackage{fancyhdr} % page style
+\usepackage{float} % force image location
+\usepackage{graphicx, wrapfig, caption, subcaption} % figures
+\usepackage{amsmath, mathtools, esvect} % math 
+\usepackage{amssymb, amsfonts, amsthm}  % math
+\usepackage{xcolor} % colour
+\usepackage{empheq} % emphasize equations 
+\usepackage[most]{tcolorbox} % config box
+\usepackage{hyperref} % clickable files
+\usepackage{listings} % environment for code
+
+% ======================
+% document information
+% ======================
+\newcommand{\profesor}{Thiago Boaventura}
+\newcommand{\student}{{Jhon Charaja}}
+\newcommand{\labnumber}{{3}}
+\newcommand{\labname}{Task Space Motion Control}
+\newcommand{\course}{{Legged Robots}}
+\newcommand{\period}{2021 - 2}
+
+
+% ===================
+% 	make front page
+% ===================
+\newcommand{\makefrontpage}{%
+	\thispagestyle{empty}
+	\begin{center}
+		\textbf{{\huge University of São Paulo}\\ [0.5cm]
+			{\LARGE São Carlos School of engineering}\\[2.5cm]
+		}
+		{\includegraphics[width=.5\textwidth]{images/horizontal_fotografico_com_subtitulo_ingles}}\\[2.5cm]
+	\end{center}	
+	
+	\begin{center}
+		{\LARGE \textbf{\course}}\\[0.8cm]
+		{\Large \textbf{Profesor:~\profesor}}\\[0.5cm]
+		{\Large \textbf{Student:~\student}}\\[2.5cm]
+		{\Large \textbf{Laboratory \labnumber}}\\[0.5cm]
+		{\Large \textbf{\labname}}\\[2.5cm] %[2.0cm]
+		{\Large \textbf{São Carlos - Brasil}} \\[0.5cm]
+		{\LARGE \textbf{\period}}
+	\end{center}
+	\newpage
+}
+
+% ==============
+% page settings
+% ==============
+\geometry{%
+	%showframe,
+  	papersize={240mm,280mm},
+  	left   = 30mm,
+  	right  = 30mm,
+  	top    = 30mm,
+  	bottom = 30mm,
+  	heightrounded, % ensures the height is adjusted so that an integer number of lines are accommodated in the text block.
+}
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{15pt}
+\lhead{\textit{\course}}
+\rfoot{-~\thepage~-}
+\lfoot{\textit{Lab~\labnumber:~\labname}}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.5pt}
+
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+
+% =========
+% my colors
+% =========
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% =============
+% caption setup
+%==============
+\captionsetup{justification=centering}
+
+% =============
+% listing setup
+% =============
+\renewcommand{\lstlistingname}{Algorithm}% Listing -> Algorithm
+\lstdefinestyle{my_style}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=false,                 
+    numbers=none,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=1
+}
+\lstset{style=my_style}
+
+% =================
+% pdf information
+% =================
+\hypersetup{%
+pdftitle   = {\student~-~lab\labnumber},
+pdfauthor  = {\student},
+colorlinks = true,
+linkcolor  = blue,
+urlcolor   = blue,
+citecolor  = blue
+}

@@ -1,0 +1,77 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Decentralized task space control}{2}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Generate sinusoidal reference}{2}{subsection.1.1}\protected@file@percent }
+\newlabel{subsec:generate_sinusoidal_reference}{{1.1}{2}{Generate sinusoidal reference}{subsection.1.1}{}}
+\newlabel{lst:sine_reference_generator}{{1}{2}{Function to generate a sinusoidal reference trajectory for some seconds and then change to a constant reference trajectory}{lstlisting.1}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}Function to generate a sinusoidal reference trajectory for some seconds and then change to a constant reference trajectory.}{2}{lstlisting.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Cartesian reference trajectories for the robot end-effector with Algorithm\nobreakspace  {}\ref  {lst:sine_reference_generator}: (a) position, (b) velocity and (c) acceleration.\relax }}{3}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:act_1.1_sin_reference}{{1}{3}{Cartesian reference trajectories for the robot end-effector with Algorithm~\ref {lst:sine_reference_generator}: (a) position, (b) velocity and (c) acceleration.\relax }{figure.caption.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Generate step reference}{4}{subsection.1.2}\protected@file@percent }
+\newlabel{subsec:generate_step_reference}{{1.2}{4}{Generate step reference}{subsection.1.2}{}}
+\newlabel{lst:step_reference_generator}{{2}{4}{Function to generate a step reference trajectory}{lstlisting.2}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}Function to generate a step reference trajectory.}{4}{lstlisting.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Cartesian reference trajectories for the robot end-effector with Algorithm\nobreakspace  {}\ref  {lst:step_reference_generator}: (a) position, (b) velocity and (c) acceleration.\relax }}{5}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:act_1.2_step_reference}{{2}{5}{Cartesian reference trajectories for the robot end-effector with Algorithm~\ref {lst:step_reference_generator}: (a) position, (b) velocity and (c) acceleration.\relax }{figure.caption.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}Inverse kinematics approach}{6}{subsection.1.3}\protected@file@percent }
+\newlabel{subsec:inverse_kinematics_approach}{{1.3}{6}{Inverse kinematics approach}{subsection.1.3}{}}
+\newlabel{eq:pd_critical_damping}{{1}{6}{Inverse kinematics approach}{equation.1.1}{}}
+\newlabel{lst:inverse_kinematics}{{3}{6}{Function to compute inverse kinematics with jacobian damped psedo-inverse method}{lstlisting.3}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}Function to compute inverse kinematics with jacobian damped psedo-inverse method.}{6}{lstlisting.3}\protected@file@percent }
+\newlabel{lst:joint_PD_control_critical_damping}{{4}{7}{Move the ur5 robot end-effector so that it follows the Cartesian sinusoidal reference trajectory of activity \ref {subsec:generate_sinusoidal_reference}}{lstlisting.4}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}Move the ur5 robot end-effector so that it follows the Cartesian sinusoidal reference trajectory of activity \ref  {subsec:generate_sinusoidal_reference}.}{7}{lstlisting.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Trajectory tracking performances of the control method \textup  {\hbox {\mathsurround \z@ \normalfont  (\ignorespaces \ref  {eq:pd_critical_damping}\unskip \@@italiccorr )}} with ${K_{p,i}}=600$ $\mathrm  {\frac  {N.m}{rad}}$ and $K_{d,i}= 2 \sqrt  {k_{p,i} m_{i,i}} $ $\mathrm  {\frac  {N.m.s}{rad}}$: (a) position, (b) velocity and (c) acceleration.\relax }}{10}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:act_1.3_ee_position}{{3}{10}{Trajectory tracking performances of the control method \eqref {eq:pd_critical_damping} with ${K_{p,i}}=600$ $\mathrm {\frac {N.m}{rad}}$ and $K_{d,i}= 2 \sqrt {k_{p,i} m_{i,i}} $ $\mathrm {\frac {N.m.s}{rad}}$: (a) position, (b) velocity and (c) acceleration.\relax }{figure.caption.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Angular position of each joint of UR5 robot with Algorithm \ref  {lst:joint_PD_control_critical_damping}.\relax }}{11}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:act_1.3_joint_position}{{4}{11}{Angular position of each joint of UR5 robot with Algorithm \ref {lst:joint_PD_control_critical_damping}.\relax }{figure.caption.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.4}Cartesian space PD control}{12}{subsection.1.4}\protected@file@percent }
+\newlabel{subsec:cartesian_space_PD_control}{{1.4}{12}{Cartesian space PD control}{subsection.1.4}{}}
+\newlabel{eq:cartesian_PD_control}{{2}{12}{Cartesian space PD control}{equation.1.2}{}}
+\newlabel{lst:cartesian_PD_control}{{5}{12}{Move the ur5 robot end-effector so that it follows the Cartesian sinusoidal reference trajectory of activity \ref {subsec:generate_sinusoidal_reference}}{lstlisting.5}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}Move the ur5 robot end-effector so that it follows the Cartesian sinusoidal reference trajectory of activity \ref  {subsec:generate_sinusoidal_reference}.}{12}{lstlisting.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Trajectory tracking performances of the control method \textup  {\hbox {\mathsurround \z@ \normalfont  (\ignorespaces \ref  {eq:cartesian_PD_control}\unskip \@@italiccorr )}} with ${K_{p}}=1000$ $\mathrm  {\frac  {N}{m}}$ and $K_{d}= 300$ $\mathrm  {\frac  {N.s}{m}}$: (a) position, (b) velocity and (c) acceleration.\relax }}{15}{figure.caption.5}\protected@file@percent }
+\newlabel{fig:act_1.4_ee_position}{{5}{15}{Trajectory tracking performances of the control method \eqref {eq:cartesian_PD_control} with ${K_{p}}=1000$ $\mathrm {\frac {N}{m}}$ and $K_{d}= 300$ $\mathrm {\frac {N.s}{m}}$: (a) position, (b) velocity and (c) acceleration.\relax }{figure.caption.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Angular position of each joint of UR5 robot with Algorithm \ref  {lst:cartesian_PD_control}.\relax }}{16}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:act_1.4_joint_position}{{6}{16}{Angular position of each joint of UR5 robot with Algorithm \ref {lst:cartesian_PD_control}.\relax }{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.5}Cartesian space PD control - postural task}{17}{subsection.1.5}\protected@file@percent }
+\newlabel{subsec:cartesian_PD_control_postural_task}{{1.5}{17}{Cartesian space PD control - postural task}{subsection.1.5}{}}
+\newlabel{eq:cartesian_PD_control_null_space}{{3}{17}{Cartesian space PD control - postural task}{equation.1.3}{}}
+\newlabel{lst:cartesian_PD_control_postural_task}{{6}{17}{Move the ur5 robot end-effector using PD control method with null space projection to follows the Cartesian sinusoidal reference trajectory of activity \ref {subsec:generate_sinusoidal_reference}}{lstlisting.6}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {6}Move the ur5 robot end-effector using PD control method with null space projection to follows the Cartesian sinusoidal reference trajectory of activity \ref  {subsec:generate_sinusoidal_reference}.}{17}{lstlisting.6}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Trajectory tracking performances of the control method \textup  {\hbox {\mathsurround \z@ \normalfont  (\ignorespaces \ref  {eq:cartesian_PD_control_null_space}\unskip \@@italiccorr )}} with ${K_{p}}=1000$ $\mathrm  {\frac  {N}{m}}$, $K_{d}= 300$ $\mathrm  {\frac  {N.s}{m}}$, ${K_{q}}=50$ $\mathrm  {\frac  {N.m}{rad}}$, $K_{d}= 10$ $\mathrm  {\frac  {N.m.s}{rad}}$: (a) position, (b) velocity and (c) acceleration.\relax }}{21}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:act_1.5_ee_position}{{7}{21}{Trajectory tracking performances of the control method \eqref {eq:cartesian_PD_control_null_space} with ${K_{p}}=1000$ $\mathrm {\frac {N}{m}}$, $K_{d}= 300$ $\mathrm {\frac {N.s}{m}}$, ${K_{q}}=50$ $\mathrm {\frac {N.m}{rad}}$, $K_{d}= 10$ $\mathrm {\frac {N.m.s}{rad}}$: (a) position, (b) velocity and (c) acceleration.\relax }{figure.caption.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Angular position of each joint of UR5 robot with Algorithm \ref  {lst:cartesian_PD_control_postural_task}.\relax }}{22}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:act_1.5_joint_position}{{8}{22}{Angular position of each joint of UR5 robot with Algorithm \ref {lst:cartesian_PD_control_postural_task}.\relax }{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.6}Cartesian space PD control + gravity compensation}{23}{subsection.1.6}\protected@file@percent }
+\newlabel{eq:cartesian_PD_control_g_null_space}{{4}{23}{Cartesian space PD control + gravity compensation}{equation.1.4}{}}
+\newlabel{lst:cartesian_PD_control_g_postural_task}{{7}{23}{Move the ur5 robot end-effector using PD control method with gravity compensation and null space projection to follows the Cartesian step reference trajectory of activity \ref {subsec:generate_step_reference}}{lstlisting.7}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {7}Move the ur5 robot end-effector using PD control method with gravity compensation and null space projection to follows the Cartesian step reference trajectory of activity \ref  {subsec:generate_step_reference}.}{23}{lstlisting.7}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Trajectory tracking performances of the control method \textup  {\hbox {\mathsurround \z@ \normalfont  (\ignorespaces \ref  {eq:cartesian_PD_control_g_null_space}\unskip \@@italiccorr )}} with ${K_{p}}=1000$ $\mathrm  {\frac  {N}{m}}$, $K_{d}= 300$ $\mathrm  {\frac  {N.s}{m}}$, ${K_{q}}=50$ $\mathrm  {\frac  {N.m}{rad}}$, $K_{d}= 10$ $\mathrm  {\frac  {N.m.s}{rad}}$: (a) position, (b) velocity and (c) acceleration.\relax }}{27}{figure.caption.9}\protected@file@percent }
+\newlabel{fig:act_1.6_ee_position}{{9}{27}{Trajectory tracking performances of the control method \eqref {eq:cartesian_PD_control_g_null_space} with ${K_{p}}=1000$ $\mathrm {\frac {N}{m}}$, $K_{d}= 300$ $\mathrm {\frac {N.s}{m}}$, ${K_{q}}=50$ $\mathrm {\frac {N.m}{rad}}$, $K_{d}= 10$ $\mathrm {\frac {N.m.s}{rad}}$: (a) position, (b) velocity and (c) acceleration.\relax }{figure.caption.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Angular position of each joint of UR5 robot with Algorithm \ref  {lst:cartesian_PD_control_g_postural_task}.\relax }}{28}{figure.caption.10}\protected@file@percent }
+\newlabel{fig:act_1.6_joint_position}{{10}{28}{Angular position of each joint of UR5 robot with Algorithm \ref {lst:cartesian_PD_control_g_postural_task}.\relax }{figure.caption.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.7}Cartesian PD control + gravity compensation + feed-forward term}{29}{subsection.1.7}\protected@file@percent }
+\newlabel{eq:cartesian_PD_g_ff_N}{{5}{29}{Cartesian PD control + gravity compensation + feed-forward term}{equation.1.5}{}}
+\newlabel{lst:cartesian_PD_g_ff_N}{{8}{29}{Move the ur5 robot end-effector using PD with gravity compensation\, feed-forward term and null space projection to follows the Cartesian sinusoidal reference trajectory of activity~\ref {subsec:generate_sinusoidal_reference}}{lstlisting.8}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8}Move the ur5 robot end-effector using PD with gravity compensation\tmspace  +\thinmuskip {.1667em} feed-forward term and null space projection to follows the Cartesian sinusoidal reference trajectory of activity\nobreakspace  {}\ref  {subsec:generate_sinusoidal_reference}.}{29}{lstlisting.8}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Trajectory tracking performances of the control method \textup  {\hbox {\mathsurround \z@ \normalfont  (\ignorespaces \ref  {eq:cartesian_PD_g_ff_N}\unskip \@@italiccorr )}} with ${K_{p}}=1000$ $\mathrm  {\frac  {N}{m}}$, $K_{d}= 300$ $\mathrm  {\frac  {N.s}{m}}$, ${K_{q}}=50$ $\mathrm  {\frac  {N.m}{rad}}$, $K_{d}= 10$ $\mathrm  {\frac  {N.m.s}{rad}}$: (a) position, (b) velocity and (c) acceleration.\relax }}{33}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:act_1.7_ee_position}{{11}{33}{Trajectory tracking performances of the control method \eqref {eq:cartesian_PD_g_ff_N} with ${K_{p}}=1000$ $\mathrm {\frac {N}{m}}$, $K_{d}= 300$ $\mathrm {\frac {N.s}{m}}$, ${K_{q}}=50$ $\mathrm {\frac {N.m}{rad}}$, $K_{d}= 10$ $\mathrm {\frac {N.m.s}{rad}}$: (a) position, (b) velocity and (c) acceleration.\relax }{figure.caption.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Angular position of each joint of UR5 robot with Algorithm \ref  {lst:cartesian_PD_g_ff_N}.\relax }}{34}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:act_1.7_joint_position}{{12}{34}{Angular position of each joint of UR5 robot with Algorithm \ref {lst:cartesian_PD_g_ff_N}.\relax }{figure.caption.12}{}}
