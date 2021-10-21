@@ -3,10 +3,11 @@
 #	Curso   :   Legged robots
 # 	Alumno  :   Jhon Charaja
 #   Lab     :   3 (Task space motion control)
-#   Activity:   1.6
+#   Activity:   1.7
 # 	Info	:	cartesian PD + null space projection + 
-#               gravity compensation +    
-#               step reference in z axis                                  
+#               gravity compensation +
+#               feed-forward term +    
+#               sinusoidal reference in x axis                                  
 # ===============================================================
 
 # =============
@@ -23,7 +24,7 @@ from labpythonlib.lab_functions import *
 # directory to save data
 origin 	= '../data/'
 matlab = "../document/images/"
-suffix 	= 'act_1.6'
+suffix 	= 'act_1.7'
 pwd = os.path.dirname(os.path.realpath(__file__))
 data_folder = os.path.join(pwd, origin, suffix)
 matlab_folder = os.path.join(pwd, matlab, suffix)
@@ -65,7 +66,7 @@ df.to_csv(path, index=False)
 #   Configuration of node
 # =========================
 # create a node: 
-rospy.init_node("cartesian_space_PD_control_postural_task_gravity_compensation")
+rospy.init_node("cartesian_space_PD_control_postural_task_gravity_compensation_feedforward_term")
 # public in topic /joint_states	to send joint data	
 pub = rospy.Publisher('joint_states', JointState, queue_size=1000)
 # loop rate (in Hz)
@@ -150,11 +151,11 @@ tau_0 = np.zeros(ndof)
 #===============
 t = 0.0             # [sec] 
 sim_duration = 5.0  # [sec]
-step_start = 2.0    # [sec]
+sine_duration = 4.0    # [sec]
 
 while not rospy.is_shutdown():
     # desired cartesian trajectory
-    p_des[2], dp_des[2], ddp_des[2] = step_reference_generator(p0[2], 0.1, step_start, t)
+    p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, sine_duration, t)
 
     # jacobian: position xyz [3x6]
     J = ur5_robot.jacobian(q_des)[0:3, 0:6]  
@@ -165,6 +166,9 @@ while not rospy.is_shutdown():
     e 	=  p_des - p_med
     de 	=  dp_des - dp_med    
 
+    # dynamics: inertia matrix
+    M = ur5_robot.get_M()
+
     # dynamics: gravity term
     g = ur5_robot.get_g()
 
@@ -172,8 +176,11 @@ while not rospy.is_shutdown():
     tau_0 = Kq.dot(q0-q_med) - Dq.dot(dq_med)
     N = np.eye(ndof) - J_inv.dot(J)
     
-    # PD + gravity compensation (cartesian space)
-    tau_PD = J.T.dot( np.multiply(kp, e) + np.multiply(kd, de) + J_inv.T.dot(g))
+    # control signal: feedforward term
+    M_x = np.linalg.inv(J.dot(np.linalg.inv(M).dot(J.T)))
+    tau_ff = M_x.dot(ddp_des)
+    # control signal: ff + PD + gravity compensation (cartesian space)
+    tau_PD = J.T.dot( tau_ff + np.multiply(kp, e) + np.multiply(kd, de) + J_inv.T.dot(g))
     # control signal: PD + g + null space projection
     tau = tau_PD + N.dot(tau_0)
     
