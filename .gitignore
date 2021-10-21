@@ -13,7 +13,9 @@ src/lab2/document/main.synctex.gz
 
 
 src/lab3/data
-src/lab3/matlab_code
+#src/lab3/matlab_code/plot_act_1_4.m
+#src/lab3/matlab_code/plot_trajectory_tracking_performance.m
+#src/lab3/matlab_code/plot_references.m
 src/lab3/document/images
 src/lab3/document/main.aux
 src/lab3/document/main.bbl
