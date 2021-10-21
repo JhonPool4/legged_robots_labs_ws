@@ -127,11 +127,10 @@ while not rospy.is_shutdown():
     tau_PD = J.T.dot( np.multiply(kp, e) + np.multiply(kd, de) )
     # control signal: PD control + null space control
     tau = tau_PD + N.dot(tau_0)
-    
     # send control signal
     ur5_robot.send_control_command(tau)
     # update states
-    q_med, dq_med, ddq_med = ur5_robot.read_joint_position_velocity_acceleration()
+    q_med,dq_med,ddq_med = ur5_robot.read_joint_position_velocity_acceleration()
     p_med, dp_med, ddp_med = ur5_robot.read_cartesian_position_velocity_acceleration()
 
     # publish message
@@ -140,10 +139,8 @@ while not rospy.is_shutdown():
     jstate.position 	= q_med
     jstate.velocity 	= dq_med
     pub.publish(jstate)
-
     # update time
     t = t + dt
-    
     # stop simulation
     if t>=sim_duration:
         print("stopping rviz ...")
@@ -152,7 +149,7 @@ while not rospy.is_shutdown():
 \end{lstlisting}
 
 %\vspace*{0cm}
-\begin{figure}%[H]
+\begin{figure}[H]
 	\centering
 	\subfloat[]{
 	\includegraphics{ee_position.eps}
