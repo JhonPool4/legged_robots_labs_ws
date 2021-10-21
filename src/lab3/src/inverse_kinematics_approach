@@ -164,12 +164,6 @@ while not rospy.is_shutdown():
     e 	=  q_des - q_med
     de 	=  dq_des - dq_med    
 
-    # compute inertia matrix
-    M = ur5_robot.get_M()
-
-    # update value of kd with critical damping approach
-    kd = 2*np.sqrt(np.multiply(kp, M.diagonal()))
-
     # PD control method + feed-forward terms
     tau_ff = M.dot(ddq_des)
     tau = tau_ff + np.multiply(kp, e) + np.multiply(kd, de)
