@@ -1,8 +1,8 @@
-# ===============================================
+# =================================================
 #	Course  :   legged robots
 # 	Alumno  :   jhon charaja
-# 	Info	:	useful functions for laboratory
-# ===============================================
+# 	Info	:	useful functions for laboratories
+# =================================================
 
 # ======================
 #   required libraries
@@ -17,16 +17,16 @@ from copy import copy
 # =============
 def sinusoidal_reference_generator(q0, a, f, t_change, t):
     """
-    Info: generates a sine signal.
+    @info: generates a sine signal.
 
-    Inputs: 
+    @inputs: 
     ------
         - q0: initial joint/cartesian position
         - a: amplitude
         - f: frecuency [hz]
         - t_change: change from sinusoidal to constant reference [sec]
         - t: simulation time [sec]
-    Outputs:
+    @outputs:
     -------
         - q, dq, ddq: joint/carteisan position, velocity and acceleration
     """
@@ -43,15 +43,15 @@ def sinusoidal_reference_generator(q0, a, f, t_change, t):
 
 def step_reference_generator(q0, a, t_step, t):
     """
-    Info: generate a constant reference.
+    @info: generate a constant reference.
 
-    Inputs:
+    @inputs:
     ------
         - q0: initial joint/cartesian position
         - a: constant reference
         - t_step: start step [sec]
         - t: simulation time [sec]
-    Outputs:
+    @outputs:
     -------
         - q, dq, ddq: joint/carteisan position, velocity and acceleration
     """
@@ -68,11 +68,22 @@ def step_reference_generator(q0, a, t_step, t):
 
 def tl(array):
     """
-    Info: add element elment of list
+    @info: add element to list
     """
     return array.tolist()    
 
 def rot2axisangle(R):
+    """
+    @info: computes axis/angle values from rotation matrix
+
+    @inputs:
+    --------
+        - R: rotation matrix
+    @outputs:
+    --------
+        - dth: angle variation
+        - axis: axis of rotation
+    """
     R32 = R[2,1]
     R23 = R[1,2]
     R13 = R[0,2]
@@ -89,10 +100,46 @@ def rot2axisangle(R):
     r = np.array([rx, ry, rz]) 
     return dth, r
 
+def rpy2rot(roll, pitch, yaw):
+    """
+    @info: computes rotation matrix from roll, pitch, yaw (ZYX euler angles) representation
+    
+    @inputs:
+    -------
+        - roll: rotation in x-axis
+        - pitch: rotation in y-axis
+        - yaw: rotation in z-axis
+    @outputs:
+    --------
+        - R: rotation matrix        
+    """
+    Rx =  np.array([ [   1   ,    0           ,        0], 
+                        [0   ,    np.cos(yaw) ,  -np.sin(yaw)],
+                        [0   ,    np.sin(yaw),  np.cos(yaw)]])
+
+    Ry = np.array([[np.cos(pitch)   ,   0   ,   np.sin(pitch)],
+                [      0            ,   1   ,           0],
+                [-np.sin(pitch)      ,   0   ,    np.cos(pitch)]])
+    
+    Rz = np.array([[ np.cos(roll)  ,  -np.sin(roll) ,      0],
+                    [np.sin(roll) ,  np.cos(roll) ,      0],
+                    [0      ,     0     ,               1]])
+
+    R =  np.dot(np.dot(Rz, Ry), Rx)
+    return R
 
 class Robot(object):
     """
-    Info: Class to load the .urdf of a robot. For thism Pinocchio library is used
+    @info: Class to load the .urdf of a robot. For thism Pinocchio library is used
+
+    @methods:
+        - foward_kinematics(q0)
+        - jacobian(q0)
+        - jacobian_time_derivative(q0, dq0)
+        - jacobian_damped_pinv(J, lambda)
+        - twist(q0, dq0)
+        - send_control_command(u)
+        - inverse_kinematics_position(x_des, q0)
     """    
     def __init__(self, q0, dq0, dt, urdf_path):
         # robot object
@@ -121,25 +168,27 @@ class Robot(object):
         self.ddp = np.zeros(3)
         # end-effector: orientation
         self.R = np.zeros([3,3])
+        # end-effector: linear and angular velocity
+        self.v = np.zeros(3)
         self.w = np.zeros(3)
         # initial configuration: position (p) and orientation (R)
         self.p, self.R = self.forward_kinematics(self.q)
-        self.w = self.twist(self.q, self.dq)[3:6]
+        # initial configuration: linear (v) and angular (w) velocity
+        self.v, self.w = self.twist(self.q, self.dq)
         # initial configuration: dynamic model
         self.M = pin.crba(self.robot.model, self.robot.data, self.q)
         self.b = pin.rnea(self.robot.model, self.robot.data, self.q, self.dq, self.z)
         self.g = pin.rnea(self.robot.model, self.robot.data, self.q, self.z, self.z)        
   
-
     def forward_kinematics(self, q0):
         """
-        Info: computes the position (xyz) and rotation (R) of the end-effector.
+        @info: computes the position (xyz) and rotation (R) of the end-effector.
 
-        Inputs:
+        @inputs:
         -----
             - q0: joint configuration (rad)
         
-        Outputs:
+        @outputs:
         -------
             - p: position of the end-effector (m).
             - R: rotation matrix of the end-effector (rad).
@@ -153,12 +202,12 @@ class Robot(object):
 
     def jacobian(self, q0):
         """
-        Info: computes jacobian matrix of the end-effector.
+        @info: computes jacobian matrix of the end-effector.
 
-        Inputs:
+        @inputs:
         ------
             - q0: joint configuration (rad)
-        Outputs:
+        @outputs:
         -------
             - J: jacobian matrix            
         """
@@ -169,13 +218,13 @@ class Robot(object):
     
     def jacobian_time_derivative(self, q0, dq0):
         """
-        Info: computes time derivative of jacobian matrix of the end-effector.
+        @info: computes time derivative of jacobian matrix of the end-effector.
 
-        Inputs:
+        @inputs:
         ------
             - q0: joint position/configuration (rad)
             - dq0: joint velocity (rad/s)
-        Outputs:
+        @outputs:
         -------
             - dJ: time derivative of jacobian matrix            
         """        
@@ -186,13 +235,13 @@ class Robot(object):
 
     def jacobian_damped_pinv(self, J, lambda_=0.0000001):
         """
-        Info: computes inverse jabobian using damped pseudo-inverse method
+        @info: computes inverse jabobian using damped pseudo-inverse method
 
-        Inputs:
+        @inputs:
         ------
             - J: position jacobian [3 x ndof]
             - lambda_ : damping term (optional)
-        Outputs:
+        @outputs:
         -------
             - J_damped_inv: inverse of jacobian matrix            
         """
@@ -200,12 +249,25 @@ class Robot(object):
         return J_damped_inv
     
     def twist(self, q0, dq0):
+        """
+        @info: computes linear and angular velocity of robot end-effector
+        @inputs:
+        -------
+            - q0: joint configuration/poition (rad)
+            - dq0: joint velocity (rad/s)
+        @outputs:
+        --------
+            - v: linear velocity (m/s)
+            - w: angular velocity (rad/s)             
+        """
         J = self.jacobian(q0)
-        return J.dot(dq0)
+        v = J.dot(dq0)[0:3]
+        w = J.dot(dq0)[3:6]
+        return v, w
 
     def send_control_command(self, u):
         """
-        Info: uses the control signal (u) to compute forward dynamics (ddq). 
+        @info: uses the control signal (u) to compute forward dynamics (ddq). 
               Then update joint configuration (q) and end-effector pose (p, R)
         """
         tau = np.squeeze(np.asarray(u))
@@ -226,7 +288,7 @@ class Robot(object):
         self.dp = np.dot(J, self.dq)
         self.ddp = np.dot(J, self.ddq) + np.dot(dJ, self.dq)
         # update end-effector: angular velocity
-        self.w = self.twist(self.q, self.dq)[3:6]
+        v, self.w = self.twist(self.q, self.dq)
         
     def inverse_kinematics_position(self, x_des, q0):
         """
@@ -274,6 +336,9 @@ class Robot(object):
 
     def read_ee_angular_velocity(self):        
         return self.w
+
+    def read_ee_linear_velocity(self):
+        return self.v        
 
     def get_M(self):
         return self.M
