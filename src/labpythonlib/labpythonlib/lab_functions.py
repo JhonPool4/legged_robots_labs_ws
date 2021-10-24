@@ -92,7 +92,7 @@ def rot2axisangle(R):
     R12 = R[0,1]
     tr  = np.diag(R).sum()
     # angle
-    angle = np.arctan2(np.sqrt( np.power(R32-R23,2)+np.power(R13-R31,2)+np.power(R21-R12,2) ),tr-1)
+    angle = np.arctan2(0.5*np.sqrt( np.power(R32-R23,2)+np.power(R13-R31,2)+np.power(R21-R12,2)), 0.5*(tr-1))
     # axis
     rx = (R32-R23)/(2*np.sin(angle))
     ry = (R13-R31)/(2*np.sin(angle))
