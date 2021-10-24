@@ -1,0 +1,17 @@
+\graphicspath{{images/act_3.1/}}
+\subsection{PD control of end-effector pose}
+The objective of this activity is to control pose (position and orientation) of the ur5 robot end-effector. The simulation starts with initial joint configuration $\mathbf{q_0}=\begin{bmatrix} 0.0 & -1.0 & 1.0 & 0.5 & 0.0 & 0.5 \end{bmatrix}$ rad and end-effector $\mathbf{p_0}=\begin{bmatrix}  0.577 &   0.192 &   0.364 \end{bmatrix}$~m. Therefore, desired position is $\mathbf{p_0}$ and orientation $\mathrm{R} = $ 
+
+the Cartesian sinusoidal reference trajectory starts at $\mathbf{p_0}$. Then, external force $\mathbf{f_{ext}}=\begin{bmatrix} 0.0 & 0.0 & 200.0\end{bmatrix}$ N is applied on end-effector after $1$ second of simulation. Motion control is made up of two approaches: Cartesian inverse dynamics and projection of the null space. In this sense, Cartesian inverse dynamics focuses on reducing end-effector position error and the projection of null space maintains the articular position close to $\mathbf{q_0}$. Finally, control law can be computed as 
+\begin{equation}
+	\boldsymbol{\tau}
+	= \mathbf{J^T} (\boldsymbol{\Lambda}( \mathbf{\ddot{p}_{des}} + \mathbf{K_p e} + \mathbf{K_d \dot{e}}) + \boldsymbol{\mu})+ \mathbf{N} \left(\mathbf{K_q(q_0-q) - D_q \dot{q}} \right) + \mathbf{J^T}\mathbf{f_{ext}} ,
+	\label{eq:cartesian_idyn_N_f_ext}
+\end{equation} 
+\begin{align*}
+	\boldsymbol{\Lambda} &= (\mathbf{J M^{-1} J^{T}})^{-1}, \\
+	\boldsymbol{\mu} &= \mathbf{J^{T\#}} - \boldsymbol{\Lambda}\mathbf{\dot{J}\dot{q}}, \\
+	\mathbf{N} &=(\mathbf{I_{6 \times 6}} - \mathbf{J^{\#} J} ),
+\end{align*}
+
+\noindent where $\mathbf{J}$ is jacobian matrix, $\boldsymbol{\Lambda}$ is inertia matrix at Cartesian space, $\mathbf{e}=\mathbf{p_{des} - p}$ is end-effector position error, $\mathbf{K_p, K_d}$ are the proportional and derivative gains respectively, $\mathbf{J^{\#}}$ is jacobian damped pseudo-inverse, $\boldsymbol{\mu}$ is nonlinear effects vector at Cartesian space, $\mathbf{N}$ is the null space projection of $\mathbf{J^{\#}}$, $\mathbf{K_q, D_q}$ are the proportional and derivative gains for null space projection and $\mathbf{f_{ext}}$ is external force. \vspace{.5cm}
