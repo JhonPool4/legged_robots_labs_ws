@@ -1,13 +1,13 @@
 % ===============================================================
-%	Curso   :   Legged robots
+%	Curso     :   Legged robots
 % Alumno  :   Jhon Charaja
-% Lab     :   3 (Task space motion control)
-% Activity:   >= 1.3 
-% Info	:	trajectory tracking performances
+% Lab        :   3 (Task space motion control)
+% Activity  :   >= 3.1 
+% Info        :	trajectory tracking error
 % ===============================================================
 clc, close all, clear all;
 
-act_dir  = 'act_2.3/'; % change with the activity name
+act_dir  = 'act_3.1/'; % change with the activity name
 file_name = 'data';
 file_path = fullfile('/home/jhon/catkin_ws/labs_ws/src/lab3/data/', act_dir);
 image_path = fullfile('/home/jhon/catkin_ws/labs_ws/src/lab3/document/images/', act_dir);
@@ -101,21 +101,28 @@ ddp_med = [ data.ddx_med(t_start:t_step:t_end), ...
             data.ddz_med(t_start:t_step:t_end)];                  
 
 % error: cartesian position
-e = p_des - p_med;
-norm_e = [norm(100*e(:,1)), norm(100*e(:,2)), norm(100*e(:,3))]/length(time);
-%% cartesian position
+p_e = p_des - p_med;
+norm_e = [norm(100*p_e(:,1)), norm(100*p_e(:,2)), norm(100*p_e(:,3))]/length(time);
+
+% error: cartesian velocity
+dp_e = dp_des - dp_med;
+
+% error: cartesian acceleration
+ddp_e = ddp_des - ddp_med;
+
+
+%% error: cartesian position
 clc, close all;
 
 figure(1), hold on, grid on, box on;
     set(gcf,'units','centimeters','position', [0 0 6.0 20.0])
 
-name_list= ["$\mathrm{x}$", "$\mathrm{y}$", "$\mathrm{z}$"];
+name_list= ["$\mathrm{e_x}$", "$\mathrm{e_y}$", "$\mathrm{e_z}$"];
 
 for i=1:3
     plot_name = strcat( name_list(i),' ($\mathrm{m}$)');
     subplot(3, 1, i),
-    plot(time(t_start:t_step:t_end), p_des(:, i), '-r', 'linewidth', 2), hold on, grid on, box on
-    plot(time(t_start:t_step:t_end), p_med(:, i), '--k', 'linewidth', 2), hold on, grid on, box on
+    plot(time(t_start:t_step:t_end), p_e(:, i), '-k', 'linewidth', 2), hold on, grid on, box on
     xlabel('time (s)', 'interpreter', 'latex')
     ylabel(plot_name, 'interpreter', 'latex')
     xticks(0:1:5)
@@ -127,20 +134,19 @@ end
 
 % Save image
 file_name     = fullfile(image_path, 'ee_position');
-saveas(gcf,file_name,'epsc')              
+saveas(gcf,file_name,'epsc')      
 
-%% cartesian velocity
+%% error: cartesian velocity
 clc, close all;
 
 figure(1), hold on, grid on, box on;
     set(gcf,'units','centimeters','position', [0 0 6.0 20.0])
 
-name_list = ["$\mathrm{\dot{x}}$", "$\mathrm{\dot{y}}$", "$\mathrm{\dot{z}}$"];
+name_list = ["$\mathrm{\dot{e}_x}$", "$\mathrm{\dot{e}_y}$", "$\mathrm{\dot{e}_z}$"];
 for i=1:3
     plot_name = strcat( name_list(i),' ($\mathrm{\frac{m}{s}}$)');
     subplot(3, 1, i),
-    plot(time(t_start:t_step:t_end), dp_des(:, i), '-r', 'linewidth', 2), hold on, grid on, box on
-    plot(time(t_start:t_step:t_end), dp_med(:, i), '--k', 'linewidth', 2), hold on, grid on, box on
+    plot(time(t_start:t_step:t_end), dp_e(:, i), '-k', 'linewidth', 2), hold on, grid on, box on
     xlabel('time (s)', 'interpreter', 'latex')
     ylabel(plot_name, 'interpreter', 'latex')
     xticks(0:1:5)
@@ -150,29 +156,21 @@ for i=1:3
     set(gca,'TickLabelInterpreter','latex')
 end         
 
-% add legend
-Lgnd = legend({'desired', 'measured'}, 'interpreter', 'latex', 'Orientation','horizontal');
-Lgnd.FontSize = 12;
-Lgnd.Position(1) = 0.02;
-Lgnd.Position(2) = 0.95;
-
 % Save image
 file_name     = fullfile(image_path, 'ee_velocity');
-saveas(gcf,file_name,'epsc')              
+saveas(gcf,file_name,'epsc')     
 
-%% cartesian acceleration
+%% error: cartesian acceleration
 clc, close all;
 
 figure(1), hold on, grid on, box on;
     set(gcf,'units','centimeters','position', [0 0 6.0 20.0])
 
-name_list = ["$\mathrm{\ddot{x}}$", "$\mathrm{\ddot{y}}$", "$\mathrm{\ddot{z}}$"];
+name_list = ["$\mathrm{\ddot{e}_x}$", "$\mathrm{\ddot{e}_y}$", "$\mathrm{\ddot{e}_z}$"];
 for i=1:3
-    plot_name = strcat( name_list(i),' ($\mathrm{\frac{m}{s^2}}$)');
+    plot_name = strcat( name_list(i),' ($\mathrm{\frac{m}{s}}$)');
     subplot(3, 1, i),
-    plot(time(t_start:t_step:t_end), ddp_des(:, i), '-r', 'linewidth', 2), hold on, grid on, box on
-    plot(time(t_start:t_step:t_end), ddp_med(:, i), '--k', 'linewidth', 2), hold on, grid on, box on
-
+    plot(time(t_start:t_step:t_end), ddp_e(:, i), '-k', 'linewidth', 2), hold on, grid on, box on
     xlabel('time (s)', 'interpreter', 'latex')
     ylabel(plot_name, 'interpreter', 'latex')
     xticks(0:1:5)
@@ -184,119 +182,4 @@ end
 
 % Save image
 file_name     = fullfile(image_path, 'ee_acceleration');
-saveas(gcf,file_name,'epsc')     
-
-
-%% joint position
-clc, close all;
-
-figure(1), hold on, grid on, box on;
-    set(gcf,'units','centimeters','position', [0 0 15.0 20.0])
-
-name_list = ["$\mathrm{q_{1,des}}$", ...
-             "$\mathrm{q_{2}}$", ...
-             "$\mathrm{q_{3}}$", ...
-             "$\mathrm{q_{4}}$", ...
-             "$\mathrm{q_{5}}$", ...
-             "$\mathrm{q_{6}}$"];
-
-for i=1:6
-    plot_name = strcat( name_list(i),' ($\mathrm{rad}$)');
-    subplot(3, 2, i),
-    %plot(time(t_start:t_step:t_end), q_des(:, i), '-r', 'linewidth', 2), hold on, grid on, box on
-    plot(time(t_start:t_step:t_end), q_med(:, i), '-k', 'linewidth', 2), hold on, grid on, box on
-    xlabel('time (s)', 'interpreter', 'latex')
-    ylabel(plot_name, 'interpreter', 'latex')
-    xticks(0:1:5)
-    xlim([0 5])
-    ax = gca; % current axes
-    ax.FontSize = 12;
-    set(gca,'TickLabelInterpreter','latex')
-end         
-
-% add legend
-%Lgnd = legend({'desired', 'measured'}, 'interpreter', 'latex', 'Orientation','horizontal');
-%Lgnd.FontSize = 12;
-%Lgnd.Position(1) = 0.3;
-%Lgnd.Position(2) = 0.95;
-
-% Save image
-file_name     = fullfile(image_path, 'joint_position');
-saveas(gcf,file_name,'epsc')     
-
-
-%% joint velocity
-clc, close all;
-
-figure(1), hold on, grid on, box on;
-    set(gcf,'units','centimeters','position', [0 0 15.0 20.0])
-
-name_list = ["$\mathrm{\dot{q}_{1,des}}$", ...
-             "$\mathrm{\dot{q}_{2}}$", ...
-             "$\mathrm{\dot{q}_{3}}$", ...
-             "$\mathrm{\dot{q}_{4}}$", ...
-             "$\mathrm{\dot{q}_{5}}$", ...
-             "$\mathrm{\dot{q}_{6}}$"];
-
-for i=1:6
-    plot_name = strcat( name_list(i),' ($\mathrm{\frac{rad}{s}}$)');
-    subplot(3, 2, i),
-    %plot(time(t_start:t_step:t_end), dq_des(:, i), '-r', 'linewidth', 2), hold on, grid on, box on
-    plot(time(t_start:t_step:t_end), dq_med(:, i), '-k', 'linewidth', 2), hold on, grid on, box on
-    xlabel('time (s)', 'interpreter', 'latex')
-    ylabel(plot_name, 'interpreter', 'latex')
-    xticks(0:1:5)
-    xlim([0 5])
-    ax = gca; % current axes
-    ax.FontSize = 12;
-    set(gca,'TickLabelInterpreter','latex')
-end         
-
-% add legend
-%Lgnd = legend({'desired', 'measured'}, 'interpreter', 'latex', 'Orientation','horizontal');
-%Lgnd.FontSize = 12;
-%Lgnd.Position(1) = 0.3;
-%Lgnd.Position(2) = 0.95;
-
-% Save image
-file_name     = fullfile(image_path, 'joint_velocity');
-saveas(gcf,file_name,'epsc')     
-
-
-%% joint acceleration
-clc, close all;
-
-figure(1), hold on, grid on, box on;
-    set(gcf,'units','centimeters','position', [0 0 15.0 20.0])
-
-name_list = ["$\mathrm{\ddot{q}_{1,des}}$", ...
-             "$\mathrm{\ddot{q}_{2}}$", ...
-             "$\mathrm{\ddot{q}_{3}}$", ...
-             "$\mathrm{\ddot{q}_{4}}$", ...
-             "$\mathrm{\ddot{q}_{5}}$", ...
-             "$\mathrm{\ddot{q}_{6}}$"];
-
-for i=1:6
-    plot_name = strcat( name_list(i),' ($\mathrm{\frac{rad}{s^2}}$)');
-    subplot(3, 2, i),
-    %plot(time(t_start:t_step:t_end), ddq_des(:, i), '-r', 'linewidth', 2), hold on, grid on, box on
-    plot(time(t_start:t_step:t_end), ddq_med(:, i), '-k', 'linewidth', 2), hold on, grid on, box on
-    xlabel('time (s)', 'interpreter', 'latex')
-    ylabel(plot_name, 'interpreter', 'latex')
-    xticks(0:1:5)
-    xlim([0 5])
-    ax = gca; % current axes
-    ax.FontSize = 12;
-    set(gca,'TickLabelInterpreter','latex')
-end         
-
-% add legend
-%Lgnd = legend({'desired', 'measured'}, 'interpreter', 'latex', 'Orientation','horizontal');
-%Lgnd.FontSize = 12;
-%Lgnd.Position(1) = 0.3;
-%Lgnd.Position(2) = 0.95;
-
-
-% Save image
-file_name     = fullfile(image_path, 'joint_acceleration');
 saveas(gcf,file_name,'epsc')     
