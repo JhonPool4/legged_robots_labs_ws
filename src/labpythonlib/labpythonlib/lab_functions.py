@@ -128,6 +128,56 @@ def rpy2rot(roll, pitch, yaw):
     R =  np.dot(np.dot(Rz, Ry), Rx)
     return R
 
+def angular_velocity_rpy(rpy, drpy):
+    """
+    @info: compute angular velocity (w) from euler angles (roll, pitch and yaw) and its derivaties
+    @inputs:
+    -------
+        - rpy[0]: rotation in x-axis (roll)
+        - rpy[1]: rotation in y-axis (pitch)
+        - rpy[2]: rotation in z-axis (yaw)
+        - drpy[0]: rotation ratio in x-axis
+        - drpy[1]: rotation ratio in y-axis
+        - drpy[2]: rotation ratio in z-axis
+    @outputs:
+    --------
+        - w: angular velocity
+    """        
+    E0 = np.array(  [[0, -np.sin(rpy[0]), np.cos(rpy[0])*np.cos(rpy[1])], \
+                    [0,   np.cos(rpy[0]), np.sin(rpy[0])*np.cos(rpy[1])], \
+                    [1,         0,          -np.sin(rpy[1])       ]])
+    
+    w = np.dot(E0, drpy)
+    return w
+
+def angular_acceleration_rpy(rpy, drpy, ddrpy):
+    """
+    @info: compute angular velocity (w) from euler angles (roll, pitch and yaw) and its derivaties
+    @inputs:
+    -------
+        - rpy[0]: rotation in x-axis (roll)
+        - rpy[1]: rotation in y-axis (pitch)
+        - rpy[2]: rotation in z-axis (yaw)
+        - drpy[0]: rotation speed in x-axis
+        - drpy[1]: rotation speed in y-axis
+        - drpy[2]: rotation speed in z-axis
+        - ddrpy[0]: rotation acceleration in x-axis
+        - ddrpy[1]: rotation acceleration in y-axis
+        - ddrpy[2]: rotation acceleration in z-axis        
+    @outputs:
+    --------
+        - dw: angular acceleration
+    """        
+    E0 = np.array(  [[0, -np.sin(rpy[0]), np.cos(rpy[0])*np.cos(rpy[1])], \
+                    [0,   np.cos(rpy[0]), np.sin(rpy[0])*np.cos(rpy[1])], \
+                    [1,         0,          -np.sin(rpy[1])       ]])
+    
+    E1 = np.array( [[0, -np.cos(rpy[0])*drpy[0], -np.sin(rpy[0])*drpy[0]*np.cos(rpy[1])-np.cos(rpy[0])*np.sin(rpy[1])*drpy[1]], \
+                    [0, -np.sin(rpy[0])*drpy[0],  np.cos(rpy[0])*drpy[0]*np.cos(rpy[1])-np.sin(rpy[0])*np.sin(rpy[1])*drpy[1]], \
+                    [0,         0,               -np.cos(rpy[1])*drpy[1]   ]])
+    dw = np.dot(E1, drpy) + np.dot(E0, ddrpy)
+    return dw
+    
 class Robot(object):
     """
     @info: Class to load the .urdf of a robot. For thism Pinocchio library is used
@@ -288,7 +338,7 @@ class Robot(object):
         self.dp = np.dot(J, self.dq)
         self.ddp = np.dot(J, self.ddq) + np.dot(dJ, self.dq)
         # update end-effector: angular velocity
-        v, self.w = self.twist(self.q, self.dq)
+        self.v, self.w = self.twist(self.q, self.dq)
         
     def inverse_kinematics_position(self, x_des, q0):
         """
