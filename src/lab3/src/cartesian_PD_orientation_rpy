@@ -3,7 +3,7 @@
 #	Curso   :   Legged robots
 # 	Alumno  :   Jhon Charaja
 #   Lab     :   3 (Task space motion control)
-#   Activity:   3.1
+#   Activity:   3.2
 # 	Info	:	cartesian PD + 
 #               orientation control (axis/angle)
 #               fixed pose                                 
@@ -23,7 +23,7 @@ from labpythonlib.lab_functions import *
 # directory to save data
 origin 	= '../data/'
 matlab = "../document/images/"
-suffix 	= 'act_3.1'
+suffix 	= 'act_3.2'
 pwd = os.path.dirname(os.path.realpath(__file__))
 data_folder = os.path.join(pwd, origin, suffix)
 matlab_folder = os.path.join(pwd, matlab, suffix)
@@ -157,7 +157,11 @@ while not rospy.is_shutdown():
     # desired cartesian trajectory
     p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, sine_duration, 0*t)
     # desired orientation
-    R_des = np.array([[1, 0, 0],[0, -1, 0],[0, 0, -1]])
+    #R_des = np.array([[1, 0, 0],[0, -1, 0],[0, 0, -1]])
+    roll    = 0.0      # z axis
+    pitch   = 0.0      # y axis
+    yaw     = np.pi/2 + 2.2*np.pi*np.sin(2*np.pi*t)  # x axis
+    R_des   = rpy2rot(roll, pitch, yaw)
 
     # jacobian: pose [6x6]
     J = ur5_robot.jacobian(q_med)  
@@ -169,6 +173,8 @@ while not rospy.is_shutdown():
     R_e = R_med.T.dot(R_des)
     dth, r_axis = rot2axisangle(R_e)
     e_o = R_med.dot(dth*r_axis) # w.r.t world frame
+    
+    print("e_o: ", e_o)
 
     # control signal: Cartesian PD
     F_p = ddp_des + np.dot(Kp, e) + np.dot(Kd, de)

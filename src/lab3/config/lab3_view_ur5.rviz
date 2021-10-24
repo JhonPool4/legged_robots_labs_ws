@@ -8,6 +8,8 @@ Panels:
         - /Status1
         - /Grid1
         - /RobotModel1
+        - /RobotModel1/Links1
+        - /RobotModel1/Links1/ee_link1
         - /Marker1
         - /Axes1
       Splitter Ratio: 0.616010844707489
@@ -78,7 +80,7 @@ Visualization Manager:
           Value: true
         ee_link:
           Alpha: 1
-          Show Axes: false
+          Show Axes: true
           Show Trail: false
           Value: true
         forearm_link:
