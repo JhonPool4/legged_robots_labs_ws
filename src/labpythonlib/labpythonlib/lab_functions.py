@@ -81,7 +81,7 @@ def rot2axisangle(R):
         - R: rotation matrix
     @outputs:
     --------
-        - dth: angle variation
+        - angle: angle of rotation
         - axis: axis of rotation
     """
     R32 = R[2,1]
@@ -92,13 +92,13 @@ def rot2axisangle(R):
     R12 = R[0,1]
     tr  = np.diag(R).sum()
     # angle
-    dth = np.arctan2(np.sqrt( np.power(R32-R23,2)+np.power(R13-R31,2)+np.power(R21-R12,2) ),tr-1)
+    angle = np.arctan2(np.sqrt( np.power(R32-R23,2)+np.power(R13-R31,2)+np.power(R21-R12,2) ),tr-1)
     # axis
-    rx = (R32-R23)/(2*np.sin(dth))
-    ry = (R13-R31)/(2*np.sin(dth))
-    rz = (R21-R12)/(2*np.sin(dth))
-    r = np.array([rx, ry, rz]) 
-    return dth, r
+    rx = (R32-R23)/(2*np.sin(angle))
+    ry = (R13-R31)/(2*np.sin(angle))
+    rz = (R21-R12)/(2*np.sin(angle))
+    axis = np.array([rx, ry, rz]) 
+    return angle, axis
 
 def rpy2rot(roll, pitch, yaw):
     """
