@@ -160,6 +160,7 @@ while not rospy.is_shutdown():
     p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, sine_duration, 0*t)
     # desired orientation
     R_des = np.array([[1, 0, 0],[0, -1, 0],[0, 0, -1]])
+    angle_des, axis_des = rot2axisangle(R_des)
     
     # jacobian: pose [6x6]
     J = ur5_robot.jacobian(q_med)  
@@ -169,8 +170,8 @@ while not rospy.is_shutdown():
     de 	=  dp_des - dp_med    
     # error: orientation
     R_e = R_med.T.dot(R_des) # required rotation matrix ("error")
-    dth, r_axis = rot2axisangle(R_e) # angle/axis ("error")
-    e_o = R_med.dot(dth*r_axis) # w.r.t world frame ("error")
+    angle, axis = rot2axisangle(R_e) # angle/axis ("error")
+    e_o = R_med.dot(angle*axis) # w.r.t world frame ("error")
 
     # control signal: Cartesian PD
     F_p = ddp_des + np.dot(Kp, e) + np.dot(Kd, de)
