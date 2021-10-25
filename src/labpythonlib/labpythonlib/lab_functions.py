@@ -100,15 +100,15 @@ def rot2axisangle(R):
     axis = np.array([rx, ry, rz]) 
     return angle, axis
 
-def rpy2rot(roll, pitch, yaw):
+def rpy2rot(rpy):
     """
     @info: computes rotation matrix from roll, pitch, yaw (ZYX euler angles) representation
     
     @inputs:
     -------
-        - roll:  rotation in z-axis
-        - pitch: rotation in y-axis
-        - yaw:   rotation in x-axis
+        - rpy[0]: rotation in z-axis (roll)
+        - rpy[1]: rotation in y-axis (pitch)
+        - rpy[2]: rotation in x-axis (yaw)
     @outputs:
     --------
         - R: rotation matrix        
@@ -218,13 +218,15 @@ class Robot(object):
         self.ddp = np.zeros(3)
         # end-effector: orientation
         self.R = np.zeros([3,3])
-        # end-effector: linear and angular velocity
-        self.v = np.zeros(3)
+        # end-effector: angular velocity and acceleration
         self.w = np.zeros(3)
+        self.dw = np.zeros(3)
         # initial configuration: position (p) and orientation (R)
         self.p, self.R = self.forward_kinematics(self.q)
-        # initial configuration: linear (v) and angular (w) velocity
-        self.v, self.w = self.twist(self.q, self.dq)
+        # initial configuration: linear (dp) and angular (w) velocity
+        self.dp, self.w = self.twist(self.q, self.dq)
+        # initial configuration: linear (ddp) and angular (dw) acceleration
+        self.ddp, self.dw = self.dtwist(self.q, self.dq, self.ddq)
         # initial configuration: dynamic model
         self.M = pin.crba(self.robot.model, self.robot.data, self.q)
         self.b = pin.rnea(self.robot.model, self.robot.data, self.q, self.dq, self.z)
@@ -298,12 +300,12 @@ class Robot(object):
         J_damped_inv =  np.dot(J.T, np.linalg.inv(np.dot(J, J.T) + lambda_*np.eye(3)))
         return J_damped_inv
     
-    def twist(self, q0, dq0):
+    def twist(self, J, dq0):
         """
         @info: computes linear and angular velocity of robot end-effector
         @inputs:
         -------
-            - q0: joint configuration/poition (rad)
+            - q0: joint configuration/position (rad)
             - dq0: joint velocity (rad/s)
         @outputs:
         --------
@@ -311,9 +313,28 @@ class Robot(object):
             - w: angular velocity (rad/s)             
         """
         J = self.jacobian(q0)
-        v = J.dot(dq0)[0:3]
-        w = J.dot(dq0)[3:6]
+        v = J[0:3,0:6].dot(dq0)
+        w = J[3:6,0:6].dot(dq0)
         return v, w
+    
+    def dtwist(self, q0, dq0, ddq0):
+        """
+        @info: computes linear and angular acceleration of robot end-effector
+        @inputs:
+        -------
+            - q0: joint configuration/position (rad)
+            - dq0: joint velocity (rad/s)
+            - ddq0: joint acceleration (rad/s^2)
+        @outputs:
+        --------
+            - a: linear acceleration (m/s^2)
+            - dw: angular acceleration (rad/s^2)             
+        """      
+        J = self.jacobian(q0)
+        dJ = self.jacobian_time_derivative(q0, dq0)
+        a = dJ[0:3,0:6].dot(dq) + J[0:3,0:6].dot(ddq)
+        dw = dJ[3:6,0:6].dot(dq) + J[3:6,0:6].dot(ddq)
+        return a, dw
 
     def send_control_command(self, u):
         """
@@ -330,16 +351,11 @@ class Robot(object):
         # update joint position/configuration
         self.dq = self.dq + self.dt*self.ddq
         self.q = self.q + self.dt*self.dq + 0.5*self.dt*self.dt*self.ddq
-        # compute new jacobians
-        J = self.jacobian(self.q)[0:3, 0:self.ndof] # position xyz
-        dJ = self.jacobian_time_derivative(self.q, self.dq)[0:3, 0:self.ndof] # position xyz
-        # update end-effector: position, velocity, acceleration and orientation
+        # update end-effector: linear and angular position, velocity and acceleration
         self.p, self.R = self.forward_kinematics(self.q)
-        self.dp = np.dot(J, self.dq)
-        self.ddp = np.dot(J, self.ddq) + np.dot(dJ, self.dq)
-        # update end-effector: angular velocity
-        self.v, self.w = self.twist(self.q, self.dq)
-        
+        self.dp, self.w = self.twist(self.q, self.dq)
+        self.ddp, self.dw = self.dtwist(self.q, self.dq, self.ddq)
+                
     def inverse_kinematics_position(self, x_des, q0):
         """
         @info: computes inverse kinematics with the method of damped pseudo-inverse.
