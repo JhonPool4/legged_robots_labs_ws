@@ -52,7 +52,7 @@ p_des = [   data.x_des(t_start:t_step:t_end), ...
 % cartesian velocity: desired
 dp_des = [  data.dx_des(t_start:t_step:t_end), ...
             data.dy_des(t_start:t_step:t_end), ...
-            data.dz_des(t_start:t_step:t_end)];        
+            data.dz_des(t_start:t_step:t_end)];         
 
 % cartesian acceleration: desired
 ddp_des = [ data.ddx_des(t_start:t_step:t_end), ...
@@ -102,7 +102,8 @@ ddp_med = [ data.ddx_med(t_start:t_step:t_end), ...
 
 % error: cartesian position
 p_e = p_des - p_med;
-norm_e = [norm(100*p_e(:,1)), norm(100*p_e(:,2)), norm(100*p_e(:,3))]/length(time);
+norm_ep = [norm(100*p_e(:,1)), norm(100*p_e(:,2)), norm(100*p_e(:,3))]/length(time); % cm
+norm_eo = [norm(e_o(:,1)), norm(e_o(:,2)), norm(e_o(:,3))]/length(time); % rad
 
 % error: cartesian velocity
 dp_e = dp_des - dp_med;
@@ -110,7 +111,10 @@ dp_e = dp_des - dp_med;
 % error: cartesian acceleration
 ddp_e = ddp_des - ddp_med;
 
-
+% error: orientation
+e_o = [ data.eo_x(t_start:t_step:t_end), ...
+            data.eo_y(t_start:t_step:t_end), ...
+            data.eo_z(t_start:t_step:t_end)];
 %% error: cartesian position
 clc, close all;
 
@@ -133,7 +137,7 @@ for i=1:3
 end         
 
 % Save image
-file_name     = fullfile(image_path, 'ee_position');
+file_name     = fullfile(image_path, 'ee_position_error');
 saveas(gcf,file_name,'epsc')      
 
 %% error: cartesian velocity
@@ -157,7 +161,7 @@ for i=1:3
 end         
 
 % Save image
-file_name     = fullfile(image_path, 'ee_velocity');
+file_name     = fullfile(image_path, 'ee_velocity_error');
 saveas(gcf,file_name,'epsc')     
 
 %% error: cartesian acceleration
@@ -181,5 +185,29 @@ for i=1:3
 end         
 
 % Save image
-file_name     = fullfile(image_path, 'ee_acceleration');
+file_name     = fullfile(image_path, 'ee_acceleration_error');
+saveas(gcf,file_name,'epsc')     
+
+%% error: orientation (axis/angle)
+clc, close all;
+
+figure(1), hold on, grid on, box on;
+    set(gcf,'units','centimeters','position', [0 0 20.0 6.0])
+
+name_list = ["$\mathrm{{e}_{o,x}}$", "$\mathrm{{e}_{o,y}}$", "$\mathrm{{e}_{o,z}}$"];
+for i=1:3
+    plot_name = strcat( name_list(i),' ($\mathrm{\frac{m}{s}}$)');
+    subplot(1, 3, i),
+    plot(time(t_start:t_step:t_end), e_o(:, i), '-k', 'linewidth', 2), hold on, grid on, box on
+    xlabel('time (s)', 'interpreter', 'latex')
+    ylabel(plot_name, 'interpreter', 'latex')
+    xticks(0:1:5)
+    xlim([0 5])
+    ax = gca; % current axes
+    ax.FontSize = 12;
+    set(gca,'TickLabelInterpreter','latex')
+end         
+
+% Save image
+file_name     = fullfile(image_path, 'ee_orientation_error');
 saveas(gcf,file_name,'epsc')     
