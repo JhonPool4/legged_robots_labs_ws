@@ -115,15 +115,15 @@ def rpy2rot(roll, pitch, yaw):
     """
     Rx =  np.array([ [   1   ,    0           ,        0], 
                         [0   ,    np.cos(yaw) ,  -np.sin(yaw)],
-                        [0   ,    np.sin(yaw),  np.cos(yaw)]])
+                        [0   ,    np.sin(yaw) ,   np.cos(yaw)]])
 
     Ry = np.array([[np.cos(pitch)   ,   0   ,   np.sin(pitch)],
                 [      0            ,   1   ,           0],
-                [-np.sin(pitch)      ,   0   ,    np.cos(pitch)]])
+                [  -np.sin(pitch)   ,   0   ,   np.cos(pitch)]])
     
     Rz = np.array([[ np.cos(roll)  ,  -np.sin(roll) ,      0],
-                    [np.sin(roll) ,  np.cos(roll) ,      0],
-                    [0      ,     0     ,               1]])
+                [    np.sin(roll)  ,   np.cos(roll) ,      0],
+                [           0      ,        0       ,      1]])
 
     R =  np.dot(np.dot(Rz, Ry), Rx)
     return R
