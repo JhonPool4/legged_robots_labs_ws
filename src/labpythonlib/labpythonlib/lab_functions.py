@@ -128,6 +128,31 @@ def rpy2rot(rpy):
     R =  np.dot(np.dot(Rz, Ry), Rx)
     return R
 
+def rot2rpy(R):
+    """
+    @info: computes roll, pitch, yaw (ZYX euler angles) from rotation matrix
+    
+    @inputs:
+    -------
+        - R: rotation matrix        
+    @outputs:
+    --------
+        - rpy[0]: rotation in z-axis (roll)
+        - rpy[1]: rotation in y-axis (pitch)
+        - rpy[2]: rotation in x-axis (yaw)
+    """
+    R32 = R[2,1]
+    R31 = R[2,0]
+    R33 = R[2,2]
+    R21 = R[1,0]
+    R11 = R[0,0]
+    rpy = np.zeros(3)    
+    rpy[1] = np.arctan2(-R31, np.sqrt(R32*R32 + R33*R33))
+    rpy[0] = np.arctan2(R21/np.cos(rpy[1]), R11/np.cos(rpy[1]))
+    rpy[2] = np.arctan2(R32/np.cos(rpy[1]), R33/np.cos(rpy[1]))
+
+    return rpy
+
 def angular_velocity_rpy(rpy, drpy):
     """
     @info: compute angular velocity (w) from euler angles (roll, pitch and yaw) and its derivaties
