@@ -157,7 +157,8 @@ sine_duration = 4.0    # [sec]
 
 while not rospy.is_shutdown():
     # desired cartesian trajectory
-    p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, sine_duration, 0*t)
+    #p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, sine_duration, t)
+    
     # desired orientation
     R_des = np.array([[1, 0, 0],[0, -1, 0],[0, 0, -1]])
     angle_des, axis_des = rot2axisangle(R_des)
@@ -189,6 +190,9 @@ while not rospy.is_shutdown():
     p_med, dp_med, ddp_med = ur5_robot.read_cartesian_position_velocity_acceleration()
     R_med = ur5_robot.read_ee_orientation()
     w_med = ur5_robot.read_ee_angular_velocity()
+    #print("\n=================")
+    #print("ee_dpos: ", dp_med)
+    #print("v: ", ur5_robot.read_ee_linear_velocity())
 
     # publish message
     jstate.header.stamp = rospy.Time.now()
@@ -199,7 +203,6 @@ while not rospy.is_shutdown():
 
     # update time
     t = t + dt
-
 
     # Append data
     row =   tl(np.array([t])) + \
