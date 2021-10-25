@@ -106,13 +106,17 @@ def rpy2rot(roll, pitch, yaw):
     
     @inputs:
     -------
-        - roll: rotation in x-axis
+        - roll:  rotation in z-axis
         - pitch: rotation in y-axis
-        - yaw: rotation in z-axis
+        - yaw:   rotation in x-axis
     @outputs:
     --------
         - R: rotation matrix        
     """
+    Rz = np.array([[ np.cos(roll)  ,  -np.sin(roll) ,      0],
+                [    np.sin(roll)  ,   np.cos(roll) ,      0],
+                [           0      ,        0       ,      1]])
+
     Rx =  np.array([ [   1   ,    0           ,        0], 
                         [0   ,    np.cos(yaw) ,  -np.sin(yaw)],
                         [0   ,    np.sin(yaw) ,   np.cos(yaw)]])
@@ -120,10 +124,6 @@ def rpy2rot(roll, pitch, yaw):
     Ry = np.array([[np.cos(pitch)   ,   0   ,   np.sin(pitch)],
                 [      0            ,   1   ,           0],
                 [  -np.sin(pitch)   ,   0   ,   np.cos(pitch)]])
-    
-    Rz = np.array([[ np.cos(roll)  ,  -np.sin(roll) ,      0],
-                [    np.sin(roll)  ,   np.cos(roll) ,      0],
-                [           0      ,        0       ,      1]])
 
     R =  np.dot(np.dot(Rz, Ry), Rx)
     return R
@@ -133,12 +133,12 @@ def angular_velocity_rpy(rpy, drpy):
     @info: compute angular velocity (w) from euler angles (roll, pitch and yaw) and its derivaties
     @inputs:
     -------
-        - rpy[0]: rotation in x-axis (roll)
+        - rpy[0]: rotation in z-axis (roll)
         - rpy[1]: rotation in y-axis (pitch)
-        - rpy[2]: rotation in z-axis (yaw)
-        - drpy[0]: rotation ratio in x-axis
+        - rpy[2]: rotation in x-axis (yaw)
+        - drpy[0]: rotation ratio in z-axis
         - drpy[1]: rotation ratio in y-axis
-        - drpy[2]: rotation ratio in z-axis
+        - drpy[2]: rotation ratio in x-axis
     @outputs:
     --------
         - w: angular velocity
@@ -155,15 +155,15 @@ def angular_acceleration_rpy(rpy, drpy, ddrpy):
     @info: compute angular velocity (w) from euler angles (roll, pitch and yaw) and its derivaties
     @inputs:
     -------
-        - rpy[0]: rotation in x-axis (roll)
+        - rpy[0]: rotation in z-axis (roll)
         - rpy[1]: rotation in y-axis (pitch)
-        - rpy[2]: rotation in z-axis (yaw)
-        - drpy[0]: rotation speed in x-axis
+        - rpy[2]: rotation in x-axis (yaw)
+        - drpy[0]: rotation speed in z-axis
         - drpy[1]: rotation speed in y-axis
         - drpy[2]: rotation speed in z-axis
-        - ddrpy[0]: rotation acceleration in x-axis
+        - ddrpy[0]: rotation acceleration in z-axis
         - ddrpy[1]: rotation acceleration in y-axis
-        - ddrpy[2]: rotation acceleration in z-axis        
+        - ddrpy[2]: rotation acceleration in x-axis        
     @outputs:
     --------
         - dw: angular acceleration
