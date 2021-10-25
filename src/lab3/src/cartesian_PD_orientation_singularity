@@ -5,8 +5,9 @@
 #   Lab     :   3 (Task space motion control)
 #   Activity:   3.2
 # 	Info	:	cartesian PD + 
-#               orientation control (axis/angle)
-#               fixed pose                                 
+#               orientation control (axis/angle) +
+#               fixed pose +
+#               singularity                                
 # ===============================================================
 
 # =============
@@ -52,7 +53,9 @@ column_names = [
 
     'q1_des', 'q2_des', 'q3_des', 'q4_des', 'q5_des', 'q6_des',
     'dq1_des', 'dq2_des', 'dq3_des', 'dq4_des', 'dq5_des', 'dq6_des',
-    'ddq1_des', 'ddq2_des', 'ddq3_des', 'ddq4_des', 'ddq5_des', 'ddq6_des' 
+    'ddq1_des', 'ddq2_des', 'ddq3_des', 'ddq4_des', 'ddq5_des', 'ddq6_des',
+
+    'eo_x', 'eo_y', 'eo_z' 
 ]
 
 df = pd.DataFrame(columns=column_names)
@@ -155,11 +158,11 @@ sine_duration = 4.0    # [sec]
 
 while not rospy.is_shutdown():
     # desired cartesian trajectory
-    p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, sine_duration, 0*t)
+    #p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, sine_duration, 0*t)
     # desired orientation
     roll    = 0.0      # z axis
     pitch   = 0.0      # y axis
-    yaw     = np.pi/2 + 2.2*np.pi*np.sin(2*np.pi*t)  # x axis
+    yaw,_,_ = sinusoidal_reference_generator(-np.pi/2, np.pi/2, 1/5, 6, t)  # x axis
     R_des   = rpy2rot(roll, pitch, yaw)
 
     # jacobian: pose [6x6]
@@ -173,9 +176,7 @@ while not rospy.is_shutdown():
     dth, r_axis = rot2axisangle(R_e)
     e_o = R_med.dot(dth*r_axis) # w.r.t world frame
     
-    #print("e_o: ", e_o)
-    # add function rot2rpy
-    # also add dot{w}_des to improve performance
+    print("e_o: ", e_o)
 
     # control signal: Cartesian PD
     F_p = ddp_des + np.dot(Kp, e) + np.dot(Kd, de)
@@ -204,13 +205,13 @@ while not rospy.is_shutdown():
     # update time
     t = t + dt
 
-
     # Append data
     row =   tl(np.array([t])) + \
             tl(p_med) + tl(dp_med) + tl(ddp_med) +\
             tl(q_med) + tl(dq_med) + tl(ddq_med) +\
-            tl(p_des) + tl(dp_des) + tl(ddp_des) + \
-            tl(q_des) + tl(dq_des) + tl(ddq_des)
+            tl(p_des) + tl(dp_des) + tl(ddp_des) +\
+            tl(q_des) + tl(dq_des) + tl(ddq_des) +\
+            tl(e_o)
     # Fix for redimensionality
     df_row = pd.DataFrame.from_dict(dict(zip(column_names, tl(np.expand_dims(np.array(row), axis = 1)))))
     df.append(df_row, sort = False).to_csv(path, index=False, mode = 'a', header=False)     
