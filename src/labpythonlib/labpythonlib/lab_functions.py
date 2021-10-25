@@ -113,17 +113,17 @@ def rpy2rot(rpy):
     --------
         - R: rotation matrix        
     """
-    Rz = np.array([[ np.cos(roll)  ,  -np.sin(roll) ,      0],
-                [    np.sin(roll)  ,   np.cos(roll) ,      0],
+    Rz = np.array([[ np.cos(rpy[0])  ,  -np.sin(rpy[0]) ,      0],
+                [    np.sin(rpy[0])  ,   np.cos(rpy[0]) ,      0],
                 [           0      ,        0       ,      1]])
 
-    Rx =  np.array([ [   1   ,    0           ,        0], 
-                        [0   ,    np.cos(yaw) ,  -np.sin(yaw)],
-                        [0   ,    np.sin(yaw) ,   np.cos(yaw)]])
-
-    Ry = np.array([[np.cos(pitch)   ,   0   ,   np.sin(pitch)],
+    Ry = np.array([[np.cos(rpy[1])   ,   0   ,   np.sin(rpy[1])],
                 [      0            ,   1   ,           0],
-                [  -np.sin(pitch)   ,   0   ,   np.cos(pitch)]])
+                [  -np.sin(rpy[1])   ,   0   ,   np.cos(rpy[1])]])
+
+    Rx =  np.array([ [   1   ,    0           ,        0], 
+                        [0   ,    np.cos(rpy[2]) ,  -np.sin(rpy[2])],
+                        [0   ,    np.sin(rpy[2]) ,   np.cos(rpy[2])]])
 
     R =  np.dot(np.dot(Rz, Ry), Rx)
     return R
@@ -300,7 +300,7 @@ class Robot(object):
         J_damped_inv =  np.dot(J.T, np.linalg.inv(np.dot(J, J.T) + lambda_*np.eye(3)))
         return J_damped_inv
     
-    def twist(self, J, dq0):
+    def twist(self, q0, dq0):
         """
         @info: computes linear and angular velocity of robot end-effector
         @inputs:
@@ -332,8 +332,8 @@ class Robot(object):
         """      
         J = self.jacobian(q0)
         dJ = self.jacobian_time_derivative(q0, dq0)
-        a = dJ[0:3,0:6].dot(dq) + J[0:3,0:6].dot(ddq)
-        dw = dJ[3:6,0:6].dot(dq) + J[3:6,0:6].dot(ddq)
+        a = dJ[0:3,0:6].dot(dq0) + J[0:3,0:6].dot(ddq0)
+        dw = dJ[3:6,0:6].dot(dq0) + J[3:6,0:6].dot(ddq0)
         return a, dw
 
     def send_control_command(self, u):
