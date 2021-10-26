@@ -189,7 +189,8 @@ while not rospy.is_shutdown():
 
     # dynamics: inertia matrix
     M = ur5_robot.get_M()
-    M_x = np.linalg.inv(J.dot(np.linalg.inv(M).dot(J.T)))
+    tmp = J.dot(np.linalg.inv(M).dot(J.T))
+    M_x = np.dot(tmp.T, np.linalg.inv(np.dot(tmp, tmp.T)+ 0.0000001*np.eye(6)))
     # dynamics: nonlinear effects vector
     b = ur5_robot.get_b()
     b_x = J_inv.T.dot(b) - M_x.dot(dJ.dot(dq_med))
