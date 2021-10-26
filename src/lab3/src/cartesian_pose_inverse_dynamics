@@ -3,10 +3,11 @@
 #	Curso   :   Legged robots
 # 	Alumno  :   Jhon Charaja
 #   Lab     :   3 (Task space motion control)
-#   Activity:   3.1
-# 	Info	:	cartesian PD + 
-#               orientation control (axis/angle)
-#               fixed pose (initial configuration)                                
+#   Activity:   3.6
+# 	Info	:	inverse dynamics + 
+#               orientation error (axis/angle) +
+#               sinusoidal orientation +
+#               fixed position                                
 # ===============================================================
 
 # =============
@@ -23,7 +24,7 @@ from labpythonlib.lab_functions import *
 # directory to save data
 origin 	= '../data/'
 matlab = "../document/images/"
-suffix 	= 'act_3.1'
+suffix 	= 'act_3.6'
 pwd = os.path.dirname(os.path.realpath(__file__))
 data_folder = os.path.join(pwd, origin, suffix)
 matlab_folder = os.path.join(pwd, matlab, suffix)
@@ -42,19 +43,14 @@ column_names = [
     'dx_med', 'dy_med', 'dz_med',
     'ddx_med', 'ddy_med', 'ddz_med',
 
-    'q1_med', 'q2_med', 'q3_med', 'q4_med', 'q5_med', 'q6_med',
-    'dq1_med', 'dq2_med', 'dq3_med', 'dq4_med', 'dq5_med', 'dq6_med',
-    'ddq1_med', 'ddq2_med', 'ddq3_med', 'ddq4_med', 'ddq5_med', 'ddq6_med', 
-
     'x_des', 'y_des', 'z_des',
     'dx_des', 'dy_des', 'dz_des',
     'ddx_des', 'ddy_des', 'ddz_des',
 
-    'q1_des', 'q2_des', 'q3_des', 'q4_des', 'q5_des', 'q6_des',
-    'dq1_des', 'dq2_des', 'dq3_des', 'dq4_des', 'dq5_des', 'dq6_des',
-    'ddq1_des', 'ddq2_des', 'ddq3_des', 'ddq4_des', 'ddq5_des', 'ddq6_des',
-
-    'eo_x', 'eo_y', 'eo_z' 
+    'eo_x', 'eo_y', 'eo_z',
+    'r_d', 'p_d', 'y_d',
+    'r_m', 'p_m', 'y_m',
+    'r_e', 'p_e', 'y_e'
 ]
 
 df = pd.DataFrame(columns=column_names)
@@ -116,34 +112,43 @@ g = np.zeros(ndof)
 # ==============================================
 #   set initial cartesian configuration of UR5
 # ==============================================
-# initial cartesian configuration
+# initial cartesian configuration: position
 p0 = ur5_robot.read_ee_position()    # position
 dp0 = np.array([0.0, 0.0, 0.0])     # velocity
 ddp0 = np.array([0.0, 0.0, 0.0])    # acceleration
+# initial cartesian configuration: orientation
 R0 = ur5_robot.read_ee_orientation() # orientation
 w0 = ur5_robot.read_ee_angular_velocity() # angular velocity
-# desired cartesian trajectory
+rpy0 = rot2rpy(R0)                     # orientation (rpy)
+# desired cartesian trajectory: position
 p_des = copy(p0)                    # position
 dp_des = np.array([0.0, 0.0, 0.0])  # velocity
 ddp_des = np.array([0.0, 0.0, 0.0]) # acceleration
-R_des = copy(R0)                    # orientation
-w_des = np.array([0.0, 0.0, 0.0])   # angular velocity
-# measured cartesian trajectory
+# desired cartesian trajectory: orientation
+R_des = copy(R0)
+rpy_des = copy(rpy0)                       # orientation (rpy)
+drpy_des = np.zeros(3)
+ddrpy_des = np.zeros(3)                                # orientation
+w_des = angular_velocity_rpy(rpy_des, drpy_des)     # angular velocity
+dw_des = angular_acceleration_rpy(rpy_des, drpy_des, ddrpy_des) # angular acceleration
+# measured cartesian trajectory: position
 p_med = copy(p0)                    # position
 dp_med = np.array([0.0, 0.0, 0.0])  # velocity
 ddp_med = np.array([0.0, 0.0, 0.0]) # acceleration
+# measured cartesian trajectory: orientation
 R_med = copy(R0)                    # orientation
+rpy_med = copy(rpy0)               # orientation (rpy)
 w_med = copy(w0)                    # angular velocity
-
+dw_med = np.zeros(3)                # angular acceleration
 # ===============================
 #   PD controller configuration
 # ===============================
 # position gains
-Kp = 1000*np.eye(3)  # N/m
-Kd = 300*np.eye(3)      # N.s/m
+Kp = 400*np.eye(3)  # N/m
+Kd = 40*np.eye(3)      # N.s/m
 # orientation gains
-Ko = 800*np.eye(3)   
-Do = 30*np.eye(3)
+Ko = 400*np.eye(3)   
+Do = 40*np.eye(3)
 # control vector
 F_p = np.zeros(3)    
 F_o = np.zeros(3)
@@ -152,35 +157,51 @@ tau = np.zeros(ndof)
 #   Simulation
 #===============
 t = 0.0             # [sec] 
-sim_duration = 5.0  # [sec]
+sim_duration = 50.0  # [sec]
 sine_duration = 4.0    # [sec]
 
 while not rospy.is_shutdown():
     # desired cartesian trajectory
-    #p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, sine_duration, t)
+    #p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, sine_duration, 0*t)
     
-    # desired orientation
-    R_des = np.array([[1, 0, 0],[0, -1, 0],[0, 0, -1]])
+    # desired orientation: rotation around x axis
+    rpy_des[2], drpy_des[2], ddrpy_des[2] = sinusoidal_reference_generator(rpy0[2], np.pi/2, 1/5, 6, t)     
+    R_des   = rpy2rot(rpy_des)
+    # desired angular velocity
+    w_des = angular_velocity_rpy(rpy_des, drpy_des)
+    # desired angular acceleration
+    dw_des = angular_acceleration_rpy(rpy_des, drpy_des, ddrpy_des)
     
     # jacobian: pose [6x6]
     J = ur5_robot.jacobian(q_med)  
+    # jacobian: damped pseudo-inverse [6x6]
+    J_inv = ur5_robot.jacobian_damped_pinv(J)   
+    # jacobian: time-derivative [6x6]
+    dJ = ur5_robot.jacobian_time_derivative(q_med, dq_med)
 
     # error: position and velocity
     e 	=  p_des - p_med
     de 	=  dp_des - dp_med    
     # error: orientation
-    R_e = R_med.T.dot(R_des) # required rotation matrix ("error")
-    angle_e, axis_e = rot2axisangle(R_e) # angle/axis ("error")
-    e_o = R_med.dot(angle_e*axis_e) # w.r.t world frame ("error")
+    R_e = R_med.T.dot(R_des)
+    angle_e, axis_e = rot2axisangle(R_e)
+    e_o = R_med.dot(angle_e*axis_e) # w.r.t world frame
+
+    # dynamics: inertia matrix
+    M = ur5_robot.get_M()
+    M_x = np.linalg.inv(J.dot(np.linalg.inv(M).dot(J.T)))
+    # dynamics: nonlinear effects vector
+    b = ur5_robot.get_b()
+    b_x = J_inv.T.dot(b) - M_x.dot(dJ.dot(dq_med))
 
     # control signal: Cartesian PD
     F_p = ddp_des + np.dot(Kp, e) + np.dot(Kd, de)
     # control signal: orientation PD
-    F_o = Ko.dot(e_o) + Do.dot(w_des - w_med)
+    F_o = dw_des + Ko.dot(e_o) + Do.dot(w_des - w_med)
     
     # control signal: Cartesian inverse_dyanmics + null space projection
     F_pose = np.concatenate((F_p, F_o), axis=0)
-    tau = J.T.dot(F_pose) 
+    tau = J.T.dot(M_x.dot(F_pose) + b_x) 
     
     # send control signal
     ur5_robot.send_control_command(tau)
@@ -189,10 +210,8 @@ while not rospy.is_shutdown():
     p_med, dp_med, ddp_med = ur5_robot.read_cartesian_position_velocity_acceleration()
     R_med = ur5_robot.read_ee_orientation()
     w_med = ur5_robot.read_ee_angular_velocity()
-    #print("\n=================")
-    #print("ee_dpos: ", dp_med)
-    #print("v: ", ur5_robot.read_ee_linear_velocity())
-
+    rpy_med = rot2rpy_unwrapping(R_med, rpy_med)
+    
     # publish message
     jstate.header.stamp = rospy.Time.now()
     jstate.name 		= jnames			# Joints position name
@@ -204,12 +223,14 @@ while not rospy.is_shutdown():
     t = t + dt
 
     # Append data
-    row =   tl(np.array([t])) + \
+    row =   tl(np.array([t])) +\
             tl(p_med) + tl(dp_med) + tl(ddp_med) +\
-            tl(q_med) + tl(dq_med) + tl(ddq_med) +\
             tl(p_des) + tl(dp_des) + tl(ddp_des) +\
-            tl(q_des) + tl(dq_des) + tl(ddq_des) +\
-            tl(e_o)
+            tl(e_o) +\
+            tl(rpy_des) +\
+            tl(rpy_med) +\
+            tl(rpy_des-rpy_med)
+    
     # Fix for redimensionality
     df_row = pd.DataFrame.from_dict(dict(zip(column_names, tl(np.expand_dims(np.array(row), axis = 1)))))
     df.append(df_row, sort = False).to_csv(path, index=False, mode = 'a', header=False)     
