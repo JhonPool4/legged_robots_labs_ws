@@ -237,7 +237,7 @@ def angular_acceleration_rpy(rpy, drpy, ddrpy):
     dw = np.dot(E1, drpy) + np.dot(E0, ddrpy)
     return dw
 
-def damped_pinv(self, M, lambda_=0.0000001):
+def damped_pinv(M, lambda_=0.0000001):
     """
     @info: computes damped pseudo-inverse
 
