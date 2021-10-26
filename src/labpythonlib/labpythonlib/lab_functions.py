@@ -236,7 +236,23 @@ def angular_acceleration_rpy(rpy, drpy, ddrpy):
                     [0,         0,               -np.cos(rpy[1])*drpy[1]   ]])
     dw = np.dot(E1, drpy) + np.dot(E0, ddrpy)
     return dw
-    
+
+def damped_pinv(self, M, lambda_=0.0000001):
+    """
+    @info: computes damped pseudo-inverse
+
+    @inputs:
+    ------
+        - M: matrix
+        - lambda_ : damping term (optional)
+    @outputs:
+    -------
+        - M_damped_inv: damped psedu-inverse of M            
+    """
+    ntask = M.shape[0]
+    M_damped_inv =  np.dot(M.T, np.linalg.inv(np.dot(M, M.T) + lambda_*np.eye(ntask)))
+    return M_damped_inv
+
 class Robot(object):
     """
     @info: Class to load the .urdf of a robot. For thism Pinocchio library is used
