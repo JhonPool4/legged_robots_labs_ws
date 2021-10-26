@@ -131,7 +131,7 @@ def rpy2rot(rpy):
     R =  np.dot(np.dot(Rz, Ry), Rx)
     return R
 
-def rot2rpy(R, wrapping=True):
+def rot2rpy(R):
     """
     @info: computes roll, pitch, yaw (ZYX euler angles) from rotation matrix
     
@@ -154,14 +154,38 @@ def rot2rpy(R, wrapping=True):
     rpy[0] = np.arctan2(R21/np.cos(rpy[1]), R11/np.cos(rpy[1]))
     rpy[2] = np.arctan2(R32/np.cos(rpy[1]), R33/np.cos(rpy[1]))
 
-    # void singularity problem
-    if wrapping:
-        for i in range(3):
-            if(rpy[i]<(rpy[i]-np.pi)):
-                rpy[i] +=2*np.pi
-            elif(rpy[i]>(rpy[i]+np.pi)):
-                rpy[i] -=2*np.pi    
     return rpy
+
+def rot2rpy_unwrapping(R, rpy_old):
+    """
+    @info: computes roll, pitch, yaw (ZYX euler angles) from rotation matrix
+    
+    @inputs:
+    -------
+        - R: rotation matrix        
+    @outputs:
+    --------
+        - rpy[0]: rotation in z-axis (roll)
+        - rpy[1]: rotation in y-axis (pitch)
+        - rpy[2]: rotation in x-axis (yaw)
+    """
+    R32 = R[2,1]
+    R31 = R[2,0]
+    R33 = R[2,2]
+    R21 = R[1,0]
+    R11 = R[0,0]
+    rpy = np.zeros(3)    
+    rpy[1] = np.arctan2(-R31, np.sqrt(R32*R32 + R33*R33))
+    rpy[0] = np.arctan2(R21/np.cos(rpy[1]), R11/np.cos(rpy[1]))
+    rpy[2] = np.arctan2(R32/np.cos(rpy[1]), R33/np.cos(rpy[1]))
+
+    for i in range(3):
+        if(rpy[i]<(rpy_old[i]-np.pi)):
+            rpy[i] +=2*np.pi
+        elif(rpy[i]>(rpy_old[i]+np.pi)):
+            rpy[i] -=2*np.pi 
+    return rpy 
+
 
 def angular_velocity_rpy(rpy, drpy):
     """
@@ -332,7 +356,8 @@ class Robot(object):
         -------
             - J_damped_inv: inverse of jacobian matrix            
         """
-        J_damped_inv =  np.dot(J.T, np.linalg.inv(np.dot(J, J.T) + lambda_*np.eye(3)))
+        ntask = J.shape[0] # position (3) + orientation (3 or 4)
+        J_damped_inv =  np.dot(J.T, np.linalg.inv(np.dot(J, J.T) + lambda_*np.eye(ntask)))
         return J_damped_inv
     
     def twist(self, q0, dq0):
