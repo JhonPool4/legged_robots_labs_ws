@@ -144,11 +144,11 @@ dw_med = np.zeros(3)                # angular acceleration
 #   PD controller configuration
 # ===============================
 # position gains
-Kp = 400*np.eye(3)  # N/m
-Kd = 40*np.eye(3)      # N.s/m
+Kp = 1000*np.eye(3)  # N/m
+Kd = 300*np.eye(3)      # N.s/m
 # orientation gains
-Ko = 400*np.eye(3)   
-Do = 40*np.eye(3)
+Ko = 800*np.eye(3)   
+Do = 30*np.eye(3)
 # control vector
 F_p = np.zeros(3)    
 F_o = np.zeros(3)
@@ -157,7 +157,7 @@ tau = np.zeros(ndof)
 #   Simulation
 #===============
 t = 0.0             # [sec] 
-sim_duration = 50.0  # [sec]
+sim_duration = 5.0  # [sec]
 sine_duration = 4.0    # [sec]
 
 while not rospy.is_shutdown():
@@ -189,8 +189,7 @@ while not rospy.is_shutdown():
 
     # dynamics: inertia matrix
     M = ur5_robot.get_M()
-    tmp = J.dot(np.linalg.inv(M).dot(J.T))
-    M_x = np.dot(tmp.T, np.linalg.inv(np.dot(tmp, tmp.T)+ 0.0000001*np.eye(6)))
+    M_x = damped_pinv(J.dot(np.linalg.inv(M).dot(J.T)))
     # dynamics: nonlinear effects vector
     b = ur5_robot.get_b()
     b_x = J_inv.T.dot(b) - M_x.dot(dJ.dot(dq_med))
