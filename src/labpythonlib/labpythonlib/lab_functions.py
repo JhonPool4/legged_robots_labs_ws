@@ -92,12 +92,15 @@ def rot2axisangle(R):
     R12 = R[0,1]
     tr  = np.diag(R).sum()
     # angle
-    angle = np.arctan2(0.5*np.sqrt( np.power(R32-R23,2)+np.power(R13-R31,2)+np.power(R21-R12,2)), 0.5*(tr-1))
+    angle = np.arctan2(0.5*np.sqrt( np.power(R21-R12,2)+np.power(R31-R13,2)+np.power(R32-R23,2)), 0.5*(tr-1))
     # axis
-    rx = (R32-R23)/(2*np.sin(angle))
-    ry = (R13-R31)/(2*np.sin(angle))
-    rz = (R21-R12)/(2*np.sin(angle))
-    axis = np.array([rx, ry, rz]) 
+    if angle!=0:
+        rx = (R32-R23)/(2*np.sin(angle))
+        ry = (R13-R31)/(2*np.sin(angle))
+        rz = (R21-R12)/(2*np.sin(angle))
+        axis = np.array([rx, ry, rz]) 
+    else:
+        axis = np.zeros(3)
     return angle, axis
 
 def rpy2rot(rpy):
@@ -128,7 +131,7 @@ def rpy2rot(rpy):
     R =  np.dot(np.dot(Rz, Ry), Rx)
     return R
 
-def rot2rpy(R):
+def rot2rpy(R, wrapping=True):
     """
     @info: computes roll, pitch, yaw (ZYX euler angles) from rotation matrix
     
@@ -151,6 +154,13 @@ def rot2rpy(R):
     rpy[0] = np.arctan2(R21/np.cos(rpy[1]), R11/np.cos(rpy[1]))
     rpy[2] = np.arctan2(R32/np.cos(rpy[1]), R33/np.cos(rpy[1]))
 
+    # void singularity problem
+    if wrapping:
+        for i in range(3):
+            if(rpy[i]<(rpy[i]-np.pi)):
+                rpy[i] +=2*np.pi
+            elif(rpy[i]>(rpy[i]+np.pi)):
+                rpy[i] -=2*np.pi    
     return rpy
 
 def angular_velocity_rpy(rpy, drpy):
