@@ -1,0 +1,19 @@
+\graphicspath{{images/act_3.4/}}
+\setcounter{subsection}{3}
+\subsection{PD control of end-effector pose - unwrapping}
+The objective of this activity is implement an unwrapping algorithm to eliminate the discontinuity of Euler angles\github{code to compute Euler angles with unwrapping algorithm form rotation matrix in}. Figure \ref{fig:act_3.4_ee_orientation_error} and \ref{fig:act_3.4_ee_orientation_tracking_rpy} shows that orientation tracking using Euler angles is continuous despite rotations greater than $|\pi|$. \vspace{.5cm}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics{ee_orientation_error_rpy.eps}
+    \caption{Orientation trajectory tracking represented with Euler angles in ZYX convention.}
+    \label{fig:act_3.4_ee_orientation_error}	
+\end{figure}
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics{ee_orientation_tracking_rpy.eps}
+    \caption{Orientation trajectory tracking represented with Euler angles in ZYX convention.}
+    \label{fig:act_3.4_ee_orientation_tracking_rpy}	
+\end{figure}

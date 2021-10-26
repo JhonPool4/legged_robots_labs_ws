@@ -1,0 +1,21 @@
+\graphicspath{{images/act_3.6/}}
+\setcounter{subsection}{5}
+\subsection{PD control of end-effector pose - inverse dynamics}
+The objective of this activity is to control pose (position and orientation) of the ur5 robot end-effector. The simulation starts with initial joint configuration $\mathbf{q_0}=\begin{bmatrix} 0.0 & -1.0 & 1.0 & 0.5 & 0.0 & 0.5 \end{bmatrix}$ rad that set the end-effector pose as $\mathbf{p_0}=\begin{bmatrix}  0.577 &   0.192 &   0.364 \end{bmatrix}$~m and $\mathbf{o_0}(\alpha, \beta, \gamma)= \begin{bmatrix} 1.57 & 0.0 & -2.14 \end{bmatrix}$~rad; orientation is represented with Euler angles in ZYX convention\github{code to compute rotation matrix from Euler angles in}. Therefore, desired Cartesian position is same as $\mathbf{p_0}$ and desired orientation starts at $\mathbf{o_0}$ then $\gamma$ increases with $\frac{\pi}{2}\sin{0.4\pi t}$. Finally, motion control is pose inverse dynamics and can be computed~as 
+\begin{align}
+	\boldsymbol{\tau} &= \mathbf{J^T} (\boldsymbol{\Lambda}\mathbf{W}^{d} + \boldsymbol{\mu}), \label{eq:pose_idyn}
+	\\
+	\boldsymbol{\Lambda} &= (\mathbf{J M^{-1} J^{T}})^{-1}, 
+	\nonumber \\
+	\boldsymbol{\mu} &= \mathbf{J^{T\#}} - \boldsymbol{\Lambda}\mathbf{\dot{J}\dot{q}}, 
+	\nonumber \\	
+	\mathbf{W}^{d} &=
+	\begin{bmatrix}
+	\mathbf{F}^{d} \\ \boldsymbol{\Gamma}^{d}
+	\end{bmatrix}, 
+	\nonumber \\
+	\mathbf{F}^{d} &= \mathbf{\ddot{p}_{des}} + \mathbf{K_p (p_{des}-p)} + \mathbf{K_d (\dot{p}_{des}-\dot{p})}, 
+	\nonumber \\
+	\boldsymbol{\Gamma}^{d} &= \mathbf{\dot{w}_{des}} + \mathbf{K_o e_o} + \mathbf{D_o (\dot{w}_{des}-\dot{w})} \nonumber
+\end{align}
+\noindent where $\mathbf{J}$ is jacobian matrix, $\boldsymbol{\Lambda}$ is inertia matrix at Cartesian space, $\boldsymbol{\mu}$ is nonlinear effects vector at Cartesian space, $\mathbf{p_{des}}$ is desired Cartesian position, $\mathbf{K_p, K_d}$ are Cartesian proportional and derivative gains respectively, $\mathbf{K_o, D_o}$ are orientation proportional and derivative gains respectively, $\mathbf{w_{des}}$ is desired angular velocity and $\mathbf{e_o}$ is orientation error. \vspace{.5cm}
