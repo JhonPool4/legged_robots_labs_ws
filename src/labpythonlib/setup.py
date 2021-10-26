@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='labpythonlib',
-    version='3.1.6',
+    version='3.1.7',
     description='Library with useful functions for laboratories',
     url='',
     author='Jhon Charaja',
