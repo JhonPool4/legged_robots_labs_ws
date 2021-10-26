@@ -7,7 +7,7 @@
 % ===============================================================
 clc, close all, clear all;
 
-act_dir  = 'act_3.4/'; % change with the activity name
+act_dir  = 'act_3.6/'; % change with the activity name
 file_name = 'data';
 file_path = fullfile('/home/jhon/catkin_ws/labs_ws/src/lab3/data/', act_dir);
 image_path = fullfile('/home/jhon/catkin_ws/labs_ws/src/lab3/document/images/', act_dir);
@@ -79,7 +79,7 @@ rpy_des = [ data.r_d(t_start:t_step:t_end), ...
 
 norm_ep = [norm(100*p_e(:,1)), norm(100*p_e(:,2)), norm(100*p_e(:,3))]/length(time); % cm
 norm_eo = [norm(e_o(:,1)), norm(e_o(:,2)), norm(e_o(:,3))]/length(time); % rad
-
+norm_erpy = [norm(e_rpy(:,1)), norm(e_rpy(:,2)), norm(e_rpy(:,3))]/length(time); % rad
 %% error: cartesian position
 clc, close all;
 
