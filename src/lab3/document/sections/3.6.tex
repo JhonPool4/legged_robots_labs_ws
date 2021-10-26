@@ -1,11 +1,11 @@
 \graphicspath{{images/act_3.6/}}
 \setcounter{subsection}{5}
 \subsection{PD control of end-effector pose - inverse dynamics}
-The objective of this activity is to control pose (position and orientation) of the ur5 robot end-effector. The simulation starts with initial joint configuration $\mathbf{q_0}=\begin{bmatrix} 0.0 & -1.0 & 1.0 & 0.5 & 0.0 & 0.5 \end{bmatrix}$ rad that set the end-effector pose as $\mathbf{p_0}=\begin{bmatrix}  0.577 &   0.192 &   0.364 \end{bmatrix}$~m and $\mathbf{o_0}(\alpha, \beta, \gamma)= \begin{bmatrix} 1.57 & 0.0 & -2.14 \end{bmatrix}$~rad; orientation is represented with Euler angles in ZYX convention\github{code to compute rotation matrix from Euler angles in}. Therefore, desired Cartesian position is same as $\mathbf{p_0}$ and desired orientation starts at $\mathbf{o_0}$ then $\gamma$ increases with $\frac{\pi}{2}\sin{0.4\pi t}$. Finally, motion control is pose inverse dynamics and can be computed~as 
+The objective of this activity is to control pose (position and orientation) of the ur5 robot end-effector. The simulation starts with initial joint configuration $\mathbf{q_0}=\begin{bmatrix} 0.0 & -1.0 & 1.0 & 0.5 & 0.0 & 0.5 \end{bmatrix}$ rad that set the end-effector pose as $\mathbf{p_0}=\begin{bmatrix}  0.577 &   0.192 &   0.364 \end{bmatrix}$~m and $\mathbf{o_0}(\alpha, \beta, \gamma)= \begin{bmatrix} 1.57 & 0.0 & -2.14 \end{bmatrix}$~rad; orientation is represented with Euler angles in ZYX convention. Therefore, desired Cartesian position is same as $\mathbf{p_0}$ and desired orientation starts at $\mathbf{o_0}$ then $\gamma$ increases with $\frac{\pi}{2}\sin{0.4\pi t}$. Finally, motion control is pose inverse dynamics and can be computed~as 
 \begin{align}
 	\boldsymbol{\tau} &= \mathbf{J^T} (\boldsymbol{\Lambda}\mathbf{W}^{d} + \boldsymbol{\mu}), \label{eq:pose_idyn}
 	\\
-	\boldsymbol{\Lambda} &= (\mathbf{J M^{-1} J^{T}})^{-1}, 
+	\boldsymbol{\Lambda} &= (\mathbf{J M^{-1} J^{T}})^{\#}, 
 	\nonumber \\
 	\boldsymbol{\mu} &= \mathbf{J^{T\#}} - \boldsymbol{\Lambda}\mathbf{\dot{J}\dot{q}}, 
 	\nonumber \\	
@@ -18,6 +18,206 @@ The objective of this activity is to control pose (position and orientation) of 
 	\nonumber \\
 	\boldsymbol{\Gamma}^{d} &= \mathbf{\dot{w}_{des}} + \mathbf{K_o e_o} + \mathbf{D_o (\dot{w}_{des}-\dot{w})} \nonumber
 \end{align}
-\noindent where $\mathbf{J}$ is jacobian matrix, $\boldsymbol{\Lambda}$ is inertia matrix at Cartesian space, $\boldsymbol{\mu}$ is nonlinear effects vector at Cartesian space, $\mathbf{p_{des}}$ is desired Cartesian position, $\mathbf{K_p, K_d}$ are Cartesian proportional and derivative gains respectively, $\mathbf{K_o, D_o}$ are orientation proportional and derivative gains respectively, $\mathbf{w_{des}}$ is desired angular velocity and $\mathbf{e_o}$ is orientation error. \vspace{.5cm}
+\noindent where $\mathbf{J}$ is jacobian matrix, $\boldsymbol{\Lambda}$ is inertia matrix at Cartesian space, $\boldsymbol{\mu}$ is nonlinear effects vector at Cartesian space, $\mathbf{p_{des}}$ is desired Cartesian position, $\mathbf{K_p, K_d}$ are Cartesian proportional and derivative gains respectively, $\mathbf{K_o, D_o}$ are orientation proportional and derivative gains respectively, $\mathbf{w_{des}}$\github{code to compute desired angular velocity from Euler angles and derivatives in} is desired angular velocity and $\mathbf{e_o}$ is orientation error. \vspace{.5cm}
 
+
+Algorithm \ref{lst:pose_idyn} control the movements of ur5 robot end-effector to achieve desired pose. In this file, the control law \ref{eq:pose_idyn} is configure with ${K_{p}}=1000$ $\mathrm{\frac{N}{m}}$, $K_{d}= 300$ $\mathrm{\frac{N.s}{m}}$, ${K_{o}}=800$ $\mathrm{\frac{N.m}{rad}}$ and $D_{o}= 30$ $\mathrm{\frac{N.m.s}{rad}}$. On one hand, Figure \ref{fig:act_3.6_ee_position_error} shows that position tracking is good with mean norm error at each axis ($||e_x||, ||e_y||, ||e_z||$) of ($0.0036$, $0.0002$, $0.0064$) cm respectively. On the other hand, Figure \ref{fig:act_3.6_ee_orientation_error} shows that orientation tracking (Euler angles) is good with mean norm error at each axis ($||e_{o,x}||, ||e_{o,y}||, ||e_{o,z}||$) of ($0.000001$, $0.0000008$, $0.0022$) rad respectively. Likewise, desired and measured orientation represented with Euler angles in ZYX convention is shown in Figure \ref{fig:act_3.6_ee_orientation_tracking_rpy}. \vspace{.5cm}
+
+
+\begin{lstlisting}[language=Python, caption={Move the ur5 robot end-effector using pose inverse dynamics \eqref{eq:pose_idyn} to achieve position $\mathbf{p_0}=\begin{bmatrix}  0.577 &   0.192 &   0.364 \end{bmatrix}$~m and Euler angles orientation $\gamma=\frac{\pi}{2}\sin{0.4\pi t}$.}, label={lst:pose_idyn}]
+# ==========================================
+#   Set initial joint configuration of UR5
+# ==========================================
+# initial configuration: position, velocity and acceleration 
+q0 =   np.array([ 0.0, -1.0, 1.0, 0.5, 0.0, 0.5])
+dq0 =  np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+ddq0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+
+# desired trajectory: position, velocity and acceleration
+q_des =   np.array([ 0.0, -1.0, 1.0, 0.5, 0.0, 0.5])
+dq_des =  np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+ddq_des = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+
+# measured trajectory: position, velocity and acceleration
+q_med =   np.array([ 0.0, -1.0, 1.0, 0.5, 0.0, 0.5])
+dq_med =  np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+ddq_med = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+
+# ===========================
+#   UR5 robot configuration
+# ===========================
+# joints name of UR5 robot
+jnames = ['shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint','wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint']
+# path of labs_ur5.urdf
+urdf_path = os.path.join(pwd, "../../ur5_description/urdf/labs_ur5.urdf")
+# the class robot load labs_ur5.urdf
+ur5_robot = Robot(q0, dq0, dt, urdf_path)
+# number of degress of freedom
+ndof = ur5_robot.ndof
+
+# create inertia matrix 
+M = np.zeros([ndof,ndof])
+# create nonlinear effects vector
+b = np.zeros(ndof)
+# create gravity vector
+g = np.zeros(ndof)
+
+# ==============================================
+#   set initial cartesian configuration of UR5
+# ==============================================
+# initial cartesian configuration: position
+p0 = ur5_robot.read_ee_position()    # position
+dp0 = np.array([0.0, 0.0, 0.0])     # velocity
+ddp0 = np.array([0.0, 0.0, 0.0])    # acceleration
+# initial cartesian configuration: orientation
+R0 = ur5_robot.read_ee_orientation() # orientation
+w0 = ur5_robot.read_ee_angular_velocity() # angular velocity
+rpy0 = rot2rpy(R0)                     # orientation (rpy)
+# desired cartesian trajectory: position
+p_des = copy(p0)                    # position
+dp_des = np.array([0.0, 0.0, 0.0])  # velocity
+ddp_des = np.array([0.0, 0.0, 0.0]) # acceleration
+# desired cartesian trajectory: orientation
+R_des = copy(R0)
+rpy_des = copy(rpy0)                       # orientation (rpy)
+drpy_des = np.zeros(3)
+ddrpy_des = np.zeros(3)                                # orientation
+w_des = angular_velocity_rpy(rpy_des, drpy_des)     # angular velocity
+dw_des = angular_acceleration_rpy(rpy_des, drpy_des, ddrpy_des) # angular acceleration
+# measured cartesian trajectory: position
+p_med = copy(p0)                    # position
+dp_med = np.array([0.0, 0.0, 0.0])  # velocity
+ddp_med = np.array([0.0, 0.0, 0.0]) # acceleration
+# measured cartesian trajectory: orientation
+R_med = copy(R0)                    # orientation
+rpy_med = copy(rpy0)               # orientation (rpy)
+w_med = copy(w0)                    # angular velocity
+dw_med = np.zeros(3)                # angular acceleration
+# ===============================
+#   PD controller configuration
+# ===============================
+# position gains
+Kp = 400*np.eye(3)  # N/m
+Kd = 40*np.eye(3)      # N.s/m
+# orientation gains
+Ko = 400*np.eye(3)   
+Do = 40*np.eye(3)
+# control vector
+F_p = np.zeros(3)    
+F_o = np.zeros(3)
+tau = np.zeros(ndof)
+#===============
+#   Simulation
+#===============
+t = 0.0             # [sec] 
+sim_duration = 5.0  # [sec]
+sine_duration = 4.0    # [sec]
+
+while not rospy.is_shutdown():
+    # desired cartesian trajectory
+    #p_des[0], dp_des[0], ddp_des[0] = sinusoidal_reference_generator(p0[0], 0.1, 1.5, sine_duration, 0*t)
+    
+    # desired orientation: rotation around x axis
+    rpy_des[2], drpy_des[2], ddrpy_des[2] = sinusoidal_reference_generator(rpy0[2], np.pi/2, 1/5, 6, t)     
+    R_des   = rpy2rot(rpy_des)
+    # desired angular velocity
+    w_des = angular_velocity_rpy(rpy_des, drpy_des)
+    # desired angular acceleration
+    dw_des = angular_acceleration_rpy(rpy_des, drpy_des, ddrpy_des)
+    
+    # jacobian: pose [6x6]
+    J = ur5_robot.jacobian(q_med)  
+    # jacobian: damped pseudo-inverse [6x6]
+    J_inv = ur5_robot.jacobian_damped_pinv(J)   
+    # jacobian: time-derivative [6x6]
+    dJ = ur5_robot.jacobian_time_derivative(q_med, dq_med)
+
+    # error: position and velocity
+    e 	=  p_des - p_med
+    de 	=  dp_des - dp_med    
+    # error: orientation
+    R_e = R_med.T.dot(R_des)
+    angle_e, axis_e = rot2axisangle(R_e)
+    e_o = R_med.dot(angle_e*axis_e) # w.r.t world frame
+
+    # dynamics: inertia matrix
+    M = ur5_robot.get_M()
+    M_x = damped_pinv(J.dot(np.linalg.inv(M).dot(J.T)))
+    # dynamics: nonlinear effects vector
+    b = ur5_robot.get_b()
+    b_x = J_inv.T.dot(b) - M_x.dot(dJ.dot(dq_med))
+
+    # control signal: Cartesian PD
+    F_p = ddp_des + np.dot(Kp, e) + np.dot(Kd, de)
+    # control signal: orientation PD
+    F_o = dw_des + Ko.dot(e_o) + Do.dot(w_des - w_med)
+    
+    # control signal: Cartesian inverse_dyanmics + null space projection
+    F_pose = np.concatenate((F_p, F_o), axis=0)
+    tau = J.T.dot(M_x.dot(F_pose) + b_x) 
+    
+    # send control signal
+    ur5_robot.send_control_command(tau)
+    # update states
+    q_med, dq_med, ddq_med = ur5_robot.read_joint_position_velocity_acceleration()
+    p_med, dp_med, ddp_med = ur5_robot.read_cartesian_position_velocity_acceleration()
+    R_med = ur5_robot.read_ee_orientation()
+    w_med = ur5_robot.read_ee_angular_velocity()
+    rpy_med = rot2rpy_unwrapping(R_med, rpy_med)
+    
+    # publish message
+    jstate.header.stamp = rospy.Time.now()
+    jstate.name 		= jnames			# Joints position name
+    jstate.position 	= q_med
+    jstate.velocity 	= dq_med
+    pub.publish(jstate)
+
+    # update time
+    t = t + dt
+    
+    # stop simulation
+    if t>=sim_duration:
+        print("stopping rviz ...")
+        break
+    rate.sleep()
+\end{lstlisting}
+
+
+%\vspace*{0cm}
+\begin{figure}%[H]
+	\centering
+	\subfloat[]{
+	\includegraphics{ee_position_error.eps}
+	}
+	%\hfill
+	\subfloat[]{
+	\includegraphics{ee_velocity_error.eps}
+	}	
+	%\hfill
+	\subfloat[]{
+	\includegraphics{ee_acceleration_error.eps}
+	}			
+	\caption{Cartesian trajectory tracking error using inverse dynamics, \eqref{eq:pose_idyn}, with  ${K_{p}}=1000$ $\mathrm{\frac{N}{m}}$, $K_{d}= 300$ $\mathrm{\frac{N.s}{m}}$, ${K_{o}}=800$ $\mathrm{\frac{N.m}{rad}}$, $K_{d}= 30$ $\mathrm{\frac{N.m.s}{rad}}$: (a) position, (b) velocity and (c) acceleration.}
+	\label{fig:act_3.6_ee_position_error}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \subfloat[]{
+   	\includegraphics{ee_orientation_error_angle_axis.eps}	
+    }
+    \hfill
+    \subfloat[]{
+    \includegraphics{ee_orientation_error_rpy.eps}
+    }
+    \caption{Orientation error using pose proportional-derivative control method with feed-forward terms, \eqref{eq:pose_PD_ff}, with  ${K_{p}}=1000$ $\mathrm{\frac{N}{m}}$, $K_{d}= 300$ $\mathrm{\frac{N.s}{m}}$, ${K_{o}}=800$ $\mathrm{\frac{N.m}{rad}}$, $K_{d}= 30$ $\mathrm{\frac{N.m.s}{rad}}$: (a) angle/axis and (b) Euler angles in ZYX convention.}
+    \label{fig:act_3.6_ee_orientation_error}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics{ee_orientation_tracking_rpy.eps}
+    \caption{Orientation trajectory tracking represented with Euler angles in ZYX convention.}
+    \label{fig:act_3.6_ee_orientation_tracking_rpy}	
+\end{figure}
 
