@@ -1,7 +1,7 @@
 # =================================================
 #	Course  :   legged robots
 # 	Alumno  :   jhon charaja
-# 	Info	:	useful functions for laboratories
+# 	Info	:	useful functions for robotics labs
 # =================================================
 
 # ======================
@@ -65,6 +65,86 @@ def step_reference_generator(q0, a, t_step, t):
         ddq = 0         # [rad/s^2]            
     return q, dq, ddq
 
+def circular_trayectory_generator(t):
+    """
+    Generate points of a circular trayectory.
+
+    Inputs:
+    -------
+        -   t   : time [s]
+
+    Outpus:
+    -------
+        -   x_circ_tray     : "x" position point of circular trayectory at time "t"
+        -   y_circ_tray     : "y" position point of circular trayectory at time "t"
+        -   dx_circ_tray    : "x" velocity point of circular trayectory at time "t"
+        -   dy_circ_tray    : "y" velocity point of circular trayectory at time "t"
+        -   ddx_circ_tray   : "x" acceleration point of circular trayectory at time "t"
+        -   ddy_circ_tray   : "y" acceleration point of circular trayectory at time "t"        
+    """
+    r_circ  = 0.05                                  #   [m] 
+    r_z     = 0.02
+
+    # Parameters of circular trayetory     
+    f           = 0.1                       # frecuency     [Hz]
+    w           = 2*np.pi*f                 # angular velocity [rad/s]
+
+    x0_tray = 0.5
+    y0_tray = 0.0
+    
+    #phi = atan2(-1, 0)/ (2*pi) = -2.5
+    phi = 0#-2.5
+    
+    # position points
+    x_circ_tray  = x0_tray + r_circ*np.cos(w*(t+phi))
+    y_circ_tray  = y0_tray + r_circ*np.sin(w*(t+phi))
+    z_circ_tray  = r_z*np.sin(w*t)
+
+    # velocity points
+    dx_circ_tray = r_circ*( (-w)*np.sin(w*(t+phi)) )
+    dy_circ_tray = r_circ*( (+w)*np.cos(w*(t+phi)) )
+    dz_circ_tray = r_z*w*np.cos(w*t)
+
+    # acceleration points
+    ddx_circ_tray = r_circ*( (-w*w)*np.cos(w*(t+phi)) )
+    ddy_circ_tray = r_circ*( (-w*w)*np.sin(w*(t+phi)) )    
+    ddz_circ_tray = r_z*(-w*w)*np.sin(w*t)
+
+    # jerk points
+    dddx_circ_tray = r_circ*( (+w*w*w)*np.sin(w*(t+phi)) )
+    dddy_circ_tray = r_circ*( (-w*w*w)*np.cos(w*(t+phi)) )
+    dddz_circ_tray = r_z*(-w*w*w)*np.cos(w*t)
+
+    # vectors
+    pos   = [x_circ_tray, y_circ_tray, z_circ_tray]
+    vel   = [dx_circ_tray, dy_circ_tray, dz_circ_tray]
+    accel = [ddx_circ_tray, ddy_circ_tray, ddz_circ_tray]
+    jerk  = [dddx_circ_tray, dddy_circ_tray, dddz_circ_tray] 
+
+    return pos, vel, accel, jerk
+
+def reference_trajectory(x_des, x_ref0, dx_ref0, dt):
+    """
+    Info: Generates a reference trajectory based on a desired trajectory.
+
+    Inputs: 
+    ------
+        - x_des:  desired trajectory
+        - x_ref0: initial conditions of x_ref
+        - dt:     sampling time 
+    """
+    psi = 1 # damping factor
+    wn  = 4 # natural frecuency
+
+    k0 = wn*wn
+    k1 = 2*psi*wn
+    # compute ddx_ref
+    ddx_ref = np.multiply(x_des,k0) -  np.multiply(dx_ref0,k1) - np.multiply(x_ref0,k0)
+    # double integration 
+    dx_ref = dx_ref0 + dt*ddx_ref
+    x_ref  = x_ref0  + dt*dx_ref
+
+    return x_ref, dx_ref, ddx_ref
 
 def tl(array):
     """
@@ -102,6 +182,81 @@ def rot2axisangle(R):
     else:
         axis = np.zeros(3)
     return angle, axis
+
+def angleaxis2rot(w):
+    """
+    @info: computes rotation matrix from angle/axis representation
+    @inputs:
+    ------
+        -
+    """
+    print("development...")
+
+def rot2quat(R):
+    """
+    @info: computes quaternion from rotation matrix
+    
+    @input:
+    ------
+        - R: Rotation matrix
+    @output:
+    -------
+        - Q: Quaternion [w, ex, ey, ez]
+    """
+    dEpsilon = 1e-6
+    Q = np.zeros(4)
+    
+    Q[0] = 0.5*np.sqrt(R[0,0]+R[1,1]+R[2,2]+1.0)
+    if ( np.fabs(R[0,0]-R[1,1]-R[2,2]+1.0) < dEpsilon ):
+        Q[1] = 0.0
+    else:
+        Q[1] = 0.5*np.sign(R[2,1]-R[1,2])*np.sqrt(R[0,0]-R[1,1]-R[2,2]+1.0)
+    if ( np.fabs(R[1,1]-R[2,2]-R[0,0]+1.0) < dEpsilon ):
+        Q[2] = 0.0
+    else:
+        Q[2] = 0.5*np.sign(R[0,2]-R[2,0])*np.sqrt(R[1,1]-R[2,2]-R[0,0]+1.0)
+    if ( np.fabs(R[2,2]-R[0,0]-R[1,1]+1.0) < dEpsilon ):
+        Q[3] = 0.0
+    else:
+        Q[3] = 0.5*np.sign(R[1,0]-R[0,1])*np.sqrt(R[2,2]-R[0,0]-R[1,1]+1.0)
+
+    return Q      
+
+def quatError(Qdes, Qmed):
+    """
+    @info: computes quaterion error (Q_e = Q_d . Q_m*).
+
+    @inputs:
+    ------
+        - Qdes: desired quaternion
+        - Q : measured quaternion
+
+    @output:
+    -------
+        - Qe : quaternion error    
+    """
+
+    we = Qdes[0]*Qmed[0] + np.dot(Qdes[1:4].T,Qmed[1:4]) - 1
+    e  = -Qdes[0]*Qmed[1:4] + Qmed[0]*Qdes[1:4] - np.cross(Qdes[1:4], Qmed[1:4])
+    Qe = np.array([ we, e[0], e[1], e[2] ])
+
+    return Qe               
+
+def axisangle_error(R_des, R_med):
+    """
+    @info: computes orientation error and represent with angle/axis.
+    @inputs:
+    ------
+        - R_d: desired orientation
+        - R_m: measured orientation
+    @outputs:
+    --------
+        - e_o: orientation error        
+    """
+    R_e = R_med.T.dot(R_des)
+    angle_e, axis_e = rot2axisangle(R_e)
+    e_o = R_med.dot(angle_e*axis_e) # w.r.t world frame
+    return e_o
 
 def rpy2rot(rpy):
     """
@@ -244,7 +399,7 @@ def damped_pinv(M, lambda_=0.0000001):
     @inputs:
     ------
         - M: matrix
-        - lambda_ : damping term (optional)
+        - lambda_: damping term (optional)
     @outputs:
     -------
         - M_damped_inv: damped psedu-inverse of M            
@@ -259,12 +414,13 @@ class Robot(object):
 
     @methods:
         - foward_kinematics(q0)
-        - jacobian(q0)
-        - jacobian_time_derivative(q0, dq0)
-        - jacobian_damped_pinv(J, lambda)
+        - geometric_jacobian(q0)
+        - analityc_jacobian(q0)
+        - geometric_jacobian_time_derivative(q0, dq0)
         - twist(q0, dq0)
         - send_control_command(u)
         - inverse_kinematics_position(x_des, q0)
+        - inverse_kinematics_pose(x_des, R_des, q0)
     """    
     def __init__(self, q0, dq0, dt, urdf_path):
         # robot object
@@ -327,23 +483,29 @@ class Robot(object):
         R = pin.updateFramePlacement(self.robot.model, self.robot.data, self.frame_ee).rotation
         return p, R
 
-    def jacobian(self, q0):
+    def analityc_jacobian(self, q0):
         """
-        @info: computes jacobian matrix of the end-effector.
+        @info: computes analityc jacobian matrix of robot end-effector.
+                The orientation is represented with quaternions.
+        """
+        print("development... ")
+
+    def geometric_jacobian(self, q0):
+        """
+        @info: computes geometric jacobian matrix of the end-effector.
 
         @inputs:
         ------
             - q0: joint configuration (rad)
         @outputs:
         -------
-            - J: jacobian matrix            
+            - J: geometric jacobian matrix            
         """
-        # compute jacobian matrix (end-effector frame)
         pin.computeJointJacobians(self.robot.model, self.robot.data, q0)
         J = pin.getFrameJacobian(self.robot.model, self.robot.data, self.frame_ee, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
         return J
     
-    def jacobian_time_derivative(self, q0, dq0):
+    def geometric_jacobian_time_derivative(self, q0, dq0):
         """
         @info: computes time derivative of jacobian matrix of the end-effector.
 
@@ -359,22 +521,6 @@ class Robot(object):
         pin.computeJointJacobiansTimeVariation(self.robot.model, self.robot.data, q0, dq0)
         dJ = pin.getFrameJacobianTimeVariation(self.robot.model, self.robot.data, self.frame_ee, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
         return dJ
-
-    def jacobian_damped_pinv(self, J, lambda_=0.0000001):
-        """
-        @info: computes inverse jabobian using damped pseudo-inverse method
-
-        @inputs:
-        ------
-            - J: position jacobian [3 x ndof]
-            - lambda_ : damping term (optional)
-        @outputs:
-        -------
-            - J_damped_inv: inverse of jacobian matrix            
-        """
-        ntask = J.shape[0] # position (3) + orientation (3 or 4)
-        J_damped_inv =  np.dot(J.T, np.linalg.inv(np.dot(J, J.T) + lambda_*np.eye(ntask)))
-        return J_damped_inv
     
     def twist(self, q0, dq0):
         """
@@ -388,7 +534,7 @@ class Robot(object):
             - v: linear velocity (m/s)
             - w: angular velocity (rad/s)             
         """
-        J = self.jacobian(q0)
+        J = self.geometric_jacobian(q0)
         v = J[0:3,0:6].dot(dq0)
         w = J[3:6,0:6].dot(dq0)
         return v, w
@@ -406,8 +552,8 @@ class Robot(object):
             - a: linear acceleration (m/s^2)
             - dw: angular acceleration (rad/s^2)             
         """      
-        J = self.jacobian(q0)
-        dJ = self.jacobian_time_derivative(q0, dq0)
+        J = self.geometric_jacobian(q0)
+        dJ = self.geometric_jacobian_time_derivative(q0, dq0)
         a = dJ[0:3,0:6].dot(dq0) + J[0:3,0:6].dot(ddq0)
         dw = dJ[3:6,0:6].dot(dq0) + J[3:6,0:6].dot(ddq0)
         return a, dw
@@ -434,8 +580,8 @@ class Robot(object):
                 
     def inverse_kinematics_position(self, x_des, q0):
         """
-        @info: computes inverse kinematics with the method of damped pseudo-inverse.
-
+        @info: computes joint position (q) from cartesian position (xyz) using 
+               the method of damped pseudo-inverse.
         @inputs:
         -------
             - xdes  :   desired position vector
@@ -453,11 +599,51 @@ class Robot(object):
         for i in range(max_iter):
             p, _ = self.forward_kinematics(q) # current position
             e   = x_des - p      # position error
-            J   = self.jacobian(q)[0:3, 0:self.ndof] # position jacobian [3x6]
-            J_damped_inv =  self.jacobian_damped_pinv(J, lambda_) # inverse jacobian [6x3]
+            J   = self.geometric_jacobian(q)[0:3, 0:self.ndof] # position jacobian [3x6]
+            J_damped_inv =  damped_pinv(J, lambda_) # inverse jacobian [6x3]
             dq  = np.dot(J_damped_inv, e)
             q   = q + delta*dq
                        
+            # evaluate convergence criterion
+            if (np.linalg.norm(e)<best_norm_e):
+                best_norm_e = np.linalg.norm(e)
+                q_best = copy(q) 
+        return q_best 
+
+    def inverse_kinematics_pose(self, x_des, R_des, q0):
+        """
+        @info: computes joint position (q) from cartesian position (xyz) and orientation(axis/angle) 
+               using the method of damped pseudo-inverse.
+        @inputs:
+        -------
+            - x_des: desired cartesian position
+            - R_des: desired rotation matrix
+            - q0: initial joint configuration (it's very important)
+        @outputs:
+        --------        
+            - q_best  : joint position
+        """         
+        best_norm_e     = 1e-6 
+        max_iter        = 10
+        delta           = 1
+        lambda_         = 0.0000001
+        q               = copy(q0)
+
+        for i in range(max_iter):
+            p, R = self.forward_kinematics(q) # current position
+            # error: position (xyz)
+            e_p = x_des[0:3] - p                  
+            # error: orientation axis/angle
+            e_o = axisangle_error(R_des, R)
+            # error: position and orientation
+            e = np.concatenate((e_p,e_o), axis=0) # [6x1] 
+            # jacobian
+            J   = self.geometric_jacobian(q) # [6x6]
+            # jacobian: pseudo-inverse
+            J_damped_inv = damped_pinv(J, lambda_) # [6x6]
+            dq  = np.dot(J_damped_inv, e)
+            q   = q + delta*dq
+            #print("e_o: ", e_o)                       
             # evaluate convergence criterion
             if (np.linalg.norm(e)<best_norm_e):
                 best_norm_e = np.linalg.norm(e)
@@ -476,8 +662,8 @@ class Robot(object):
     def read_ee_orientation(self):
         return self.R
 
-    def read_ee_angular_velocity(self):        
-        return self.w
+    def read_ee_angular_velocity_acceleration(self):        
+        return self.w, self.dw
 
     def read_ee_linear_velocity(self):
         return self.v        
@@ -490,13 +676,6 @@ class Robot(object):
     
     def get_g(self):
         return self.g
-    # deprecated
-    def get_ee_orientation(self):
-        return self.R
-    # deprecated        
-    def get_ee_position(self):
-        return self.p
-
 
 
 
