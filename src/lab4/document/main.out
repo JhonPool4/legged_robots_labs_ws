@@ -1,0 +1,12 @@
+\BOOKMARK [1][-]{section.1}{Joint space impedance control}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{PD impedance controllers}{section.1}% 2
+\BOOKMARK [3][-]{subsubsection.1.1.1}{Only stiffness}{subsection.1.1}% 3
+\BOOKMARK [3][-]{subsubsection.1.1.2}{Only damping}{subsection.1.1}% 4
+\BOOKMARK [3][-]{subsubsection.1.1.3}{Stiffness and Damping \(K=500 Nmrad, D=10 Nmsrad\)}{subsection.1.1}% 5
+\BOOKMARK [2][-]{subsection.1.2}{Gravity and Coriolis compensation}{section.1}% 6
+\BOOKMARK [2][-]{subsection.1.3}{Inertial dynamic coupling compensation}{section.1}% 7
+\BOOKMARK [2][-]{subsection.1.4}{Inertia control}{section.1}% 8
+\BOOKMARK [1][-]{section.2}{Task space impedance control}{}% 9
+\BOOKMARK [2][-]{subsection.2.1}{PD impedance control}{section.2}% 10
+\BOOKMARK [2][-]{subsection.2.2}{Gravity and Coriolis compensation}{section.2}% 11
+\BOOKMARK [2][-]{subsection.2.3}{Inverse dynamics based impedance control}{section.2}% 12

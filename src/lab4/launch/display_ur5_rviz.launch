@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!-- info: display ur5 robot on rviz-->
+<launch>
+    <!-- Load urdf model-->
+    <param  name="robot_description" textfile="$(find ur5_description)/urdf/labs_ur5.urdf" />
+    <!-- Publish robot state-->
+    <node   name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen" />
+    <!-- Rviz config file-->            
+    <arg name="rviz_config_file" default="$(find lab4)/config/labs_view_ur5.rviz"/>
+    <!-- Open Rviz with config--> 
+    <node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d$(arg rviz_config_file)"/>
+</launch>

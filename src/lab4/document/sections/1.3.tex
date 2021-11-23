@@ -1,0 +1,33 @@
+\graphicspath{{images/act_1.3/}}
+\subsection{Inertial dynamic coupling compensation}
+The objective of this activity is analyze effects inertial couplings on the relation between interaction torques ($\boldsymbol{\tau}_\mathbf{ext}$) and joint configuration ($\mathbf{q, \dot{q}, \ddot{q}}$). For this purpose, a simulation environment is developed that contains the UR5 robot and allows external torques to be applied. The simulation starts with initial joint configuration $\mathbf{q_0}=\begin{bmatrix} 0.0 & -1.0 & 1.0 & 0.5 & 0.0 & 0.5 \end{bmatrix}$ rad. Then, external torque $\tau_\mathrm{ext}= 20\sin{(2\pi t)}$ is applied to each joint. Finally, movements of ur5 robot is controlled with a proportional-derivative impedance control method with inertia and gravity compensation at joint level. Thus, control law can be computed as 
+\begin{equation}
+	\boldsymbol{\tau}
+	= \mathbf{M}\left(\mathbf{K_{des} e} + \mathbf{D_{des} \dot{e}}\right) + \mathbf{b},
+	\label{eq:articular_PDi_M_b}
+\end{equation}
+\noindent where $\mathbf{e}=\mathbf{q_{des} - q}$ is joint position error, $\mathbf{M}$ is inertia matrix, $\mathbf{b}=\mathbf{C(q, \dot{q})} + \mathbf{g(q)}$ is nonlinear effects vector, and $\mathbf{D_{des}, K_{des}}$ are desired stiffness and damping matrix, respectively.
+
+Figure \ref{fig:act1.3_tau_vs_q}-\ref{fig:act1.3_tau_vs_ddq} show relation between external torque ($\tauext$) and joint configuration ($\jointconfiguration$) using control law \eqref{eq:articular_PDi_M_b} with $\mathbf{K_{des}}=500\eye$ $\mathrm{\frac{N.m}{rad}}$ $\mathbf{D_{des}}=10\eye$ and $\mathrm{\frac{N.m.s}{rad}}$. In this figures, impedance profiles ($\tauext$ vs $\jointconfiguration$) are the same for all joints. Thus, maximum joint position displacement ($\Delta q=0.04$~rad) and maximum/minimum velocity ($\dot{q}= \pm 2$ $\mathrm{\frac{rad}{s}}$) are the same for all joints when robot interact with external torques.
+
+\begin{figure}
+\centering
+\includegraphics{external_torque_vs_joint_position.eps}
+\caption{Dynamic relation between external torque ($\tauext$) and joint positions ($\mathbf{q}$) using proportional-derivative impedance control with inertia and gravity compensation \eqref{eq:articular_PDi_M_b} with $\mathbf{K_{des}}=500\eye$ $\mathrm{\frac{N.m}{rad}}$ $\mathbf{D_{des}}=10\eye$ and $\mathrm{\frac{N.m.s}{rad}}$.}
+\label{fig:act1.3_tau_vs_q}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics{external_torque_vs_joint_velocity.eps}
+\caption{Dynamic relation between external torque ($\tauext$) and joint velocities ($\mathbf{\dot{q}}$) using proportional-derivative impedance control with inertia and gravity compensation \eqref{eq:articular_PDi_M_b} with $\mathbf{K_{des}}=500\eye$ $\mathrm{\frac{N.m}{rad}}$ $\mathbf{D_{des}}=10\eye$ and $\mathrm{\frac{N.m.s}{rad}}$.}
+\label{fig:act1.3_tau_vs_dq}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics{external_torque_vs_joint_acceleration.eps}
+\caption{Dynamic relation between external torque ($\tauext$) and joint accelerations ($\mathbf{\ddot{q}}$) using proportional-derivative impedance control with inertia and gravity compensation \eqref{eq:articular_PDi_M_b} with $\mathbf{K_{des}}=500\eye$ $\mathrm{\frac{N.m}{rad}}$ $\mathbf{D_{des}}=10\eye$ and $\mathrm{\frac{N.m.s}{rad}}$.}
+\label{fig:act1.3_tau_vs_ddq}
+\end{figure}
+

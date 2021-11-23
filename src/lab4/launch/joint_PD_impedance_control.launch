@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!-- info: display ur5 robot on rviz-->
+<launch>
+    <!-- display ur5 robot on rviz-->
+    <include file="$(find lab4)/launch/display_ur5_rviz.launch">
+        <arg name="rviz_config_file" value="$(find lab4)/config/lab4_view_ur5.rviz"/>       
+    </include>
+	<!-- rosnode to move ur5 robot-->
+	<node name="joint_PD_impedance_control" pkg="lab4" type="joint_PD_impedance_control" output="screen" />
+</launch>
